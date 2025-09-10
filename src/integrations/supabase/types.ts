@@ -14,13 +14,361 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string | null
+          id: string
+          payload: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          payload?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          payload?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cases: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          case_id: string | null
+          created_at: string | null
+          evidence: Json | null
+          id: string
+          score: number | null
+          suspect_id: string | null
+          threshold: number | null
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          score?: number | null
+          suspect_id?: string | null
+          threshold?: number | null
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          score?: number | null
+          suspect_id?: string | null
+          threshold?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_suspect_id_fkey"
+            columns: ["suspect_id"]
+            isOneToOne: false
+            referencedRelation: "suspects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media: {
+        Row: {
+          case_id: string | null
+          created_at: string | null
+          id: string
+          meta: Json | null
+          type: string | null
+          url: string
+        }
+        Insert: {
+          case_id?: string | null
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          type?: string | null
+          url: string
+        }
+        Update: {
+          case_id?: string | null
+          created_at?: string | null
+          id?: string
+          meta?: Json | null
+          type?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suspect_embeddings: {
+        Row: {
+          created_at: string | null
+          id: string
+          model_name: string | null
+          suspect_id: string | null
+          vector: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          model_name?: string | null
+          suspect_id?: string | null
+          vector?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          model_name?: string | null
+          suspect_id?: string | null
+          vector?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suspect_embeddings_suspect_id_fkey"
+            columns: ["suspect_id"]
+            isOneToOne: false
+            referencedRelation: "suspects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suspects: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          notes: string | null
+          photo_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          photo_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          photo_url?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string | null
+          role: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          name?: string | null
+          role?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string | null
+          role?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
+      create_audit_log: {
+        Args: {
+          p_action: string
+          p_payload?: Json
+          p_target_id?: string
+          p_target_type: string
+        }
+        Returns: undefined
+      }
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_analyst_or_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_officer_or_above: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
