@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import NewCaseDialog from '@/components/NewCaseDialog';
 
 const Cases = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showNewCaseDialog, setShowNewCaseDialog] = useState(false);
 
   const { data: cases, isLoading, refetch } = useQuery({
@@ -79,7 +81,11 @@ const Cases = () => {
                   </p>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Created: {new Date(case_.created_at).toLocaleDateString()}</span>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/cases/${case_.id}`)}
+                    >
                       View Details
                     </Button>
                   </div>
