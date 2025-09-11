@@ -2,9 +2,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, userRole, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -50,7 +52,9 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-3xl font-bold mb-2">0</div>
               <p className="text-sm text-muted-foreground">No active cases</p>
-              <Button className="mt-4 w-full">View Cases</Button>
+              <Button className="mt-4 w-full" onClick={() => navigate('/cases')}>
+                View Cases
+              </Button>
             </CardContent>
           </Card>
 
