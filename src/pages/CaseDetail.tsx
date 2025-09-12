@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import MediaUpload from '@/components/MediaUpload';
 import SuspectLinking from '@/components/SuspectLinking';
+import SketchGenerator from '@/components/SketchGenerator';
 
 const CaseDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -163,6 +164,15 @@ const CaseDetail = () => {
           </TabsList>
 
           <TabsContent value="evidence" className="space-y-6">
+            {/* AI Sketch Generator */}
+            <SketchGenerator 
+              caseId={id!} 
+              onSketchGenerated={() => {
+                refetchMedia();
+                refetchCase();
+              }}
+            />
+            
             {/* Media Upload */}
             <MediaUpload 
               caseId={id!} 
