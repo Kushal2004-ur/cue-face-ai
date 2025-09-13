@@ -65,3 +65,6 @@ template = "Your code is {{ .Code }}"
 
 [functions.generate-sketch]
 verify_jwt = false
+
+[functions.find-suspect-matches]
+verify_jwt = false

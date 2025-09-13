@@ -136,6 +136,7 @@ export type Database = {
         Row: {
           case_id: string | null
           created_at: string | null
+          embedding: string | null
           id: string
           meta: Json | null
           type: string | null
@@ -144,6 +145,7 @@ export type Database = {
         Insert: {
           case_id?: string | null
           created_at?: string | null
+          embedding?: string | null
           id?: string
           meta?: Json | null
           type?: string | null
@@ -152,6 +154,7 @@ export type Database = {
         Update: {
           case_id?: string | null
           created_at?: string | null
+          embedding?: string | null
           id?: string
           meta?: Json | null
           type?: string | null
@@ -205,6 +208,7 @@ export type Database = {
           id: string
           name: string
           notes: string | null
+          photo_embedding: string | null
           photo_url: string | null
         }
         Insert: {
@@ -212,6 +216,7 @@ export type Database = {
           id?: string
           name: string
           notes?: string | null
+          photo_embedding?: string | null
           photo_url?: string | null
         }
         Update: {
@@ -219,6 +224,7 @@ export type Database = {
           id?: string
           name?: string
           notes?: string | null
+          photo_embedding?: string | null
           photo_url?: string | null
         }
         Relationships: []
@@ -264,6 +270,19 @@ export type Database = {
           p_target_type: string
         }
         Returns: undefined
+      }
+      find_similar_suspects: {
+        Args: {
+          max_results?: number
+          similarity_threshold?: number
+          sketch_embedding: string
+        }
+        Returns: {
+          similarity_score: number
+          suspect_id: string
+          suspect_name: string
+          suspect_photo_url: string
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>

@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import MediaUpload from '@/components/MediaUpload';
 import SuspectLinking from '@/components/SuspectLinking';
 import SketchGenerator from '@/components/SketchGenerator';
+import AIMatching from '@/components/AIMatching';
 
 const CaseDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -152,7 +153,7 @@ const CaseDetail = () => {
 
         {/* Tabs for Evidence and Suspects */}
         <Tabs defaultValue="evidence" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="evidence" className="flex items-center space-x-2">
               <Upload className="h-4 w-4" />
               <span>Evidence & Media</span>
@@ -160,6 +161,10 @@ const CaseDetail = () => {
             <TabsTrigger value="suspects" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>Linked Suspects</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-matching" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>AI Suspect Match</span>
             </TabsTrigger>
           </TabsList>
 
@@ -282,6 +287,10 @@ const CaseDetail = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="ai-matching" className="space-y-6">
+            <AIMatching caseId={id!} />
           </TabsContent>
         </Tabs>
       </main>

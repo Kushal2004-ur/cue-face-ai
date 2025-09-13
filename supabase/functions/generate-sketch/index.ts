@@ -56,6 +56,34 @@ serve(async (req) => {
     // The response from gpt-image-1 contains base64 data directly
     const base64Image = data.data[0].b64_json;
     
+    // Generate embedding for the sketch using OpenAI's text-embedding model
+    // We'll use the description as a proxy for visual embedding
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-3-small',
+        input: `Forensic sketch of person: ${description}`,
+        dimensions: 1536
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      console.error('Embedding generation failed, proceeding without embedding');
+    }
+
+    let embedding = null;
+    try {
+      const embeddingData = await embeddingResponse.json();
+      embedding = embeddingData.data[0].embedding;
+      console.log('Generated embedding for sketch');
+    } catch (error) {
+      console.error('Error processing embedding:', error);
+    }
+    
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -86,17 +114,19 @@ serve(async (req) => {
       .from('case-evidence')
       .getPublicUrl(filePath);
 
-    // Save media record to database
+    // Save media record to database with embedding
     const { data: mediaData, error: mediaError } = await supabase
       .from('media')
       .insert({
         case_id: caseId,
         url: urlData.publicUrl,
         type: 'sketch',
+        embedding: embedding,
         meta: {
           description,
           generated_by: 'ai',
           model: 'gpt-image-1',
+          embedding_model: embedding ? 'text-embedding-3-small' : null,
           generated_at: new Date().toISOString()
         }
       })
