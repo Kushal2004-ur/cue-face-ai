@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Cases from "./pages/Cases";
 import CaseDetail from "./pages/CaseDetail";
+import Suspects from "./pages/Suspects";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,16 @@ const App = () => (
             <Route path="/cases/:id" element={
               <ProtectedRoute>
                 <CaseDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/suspects" element={
+              <ProtectedRoute>
+                <Suspects />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

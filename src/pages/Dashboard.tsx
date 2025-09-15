@@ -3,10 +3,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, userRole, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Fetch dashboard statistics
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const [casesResult, suspectsResult, matchesResult] = await Promise.all([
+        supabase.from('cases').select('id, status').eq('status', 'open'),
+        supabase.from('suspects').select('id'),
+        supabase.from('matches').select('id, created_at').order('created_at', { ascending: false }).limit(10)
+      ]);
+
+      return {
+        activeCases: casesResult.data?.length || 0,
+        totalSuspects: suspectsResult.data?.length || 0,
+        recentMatches: matchesResult.data?.length || 0,
+      };
+    },
+  });
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -29,9 +49,9 @@ const Dashboard = () => {
             </Badge>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
               {user?.email}
-            </span>
+            </Button>
             <Button variant="outline" size="sm" onClick={signOut}>
               Sign Out
             </Button>
@@ -50,8 +70,10 @@ const Dashboard = () => {
               <CardDescription>Manage ongoing investigations</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold mb-2">0</div>
-              <p className="text-sm text-muted-foreground">No active cases</p>
+              <div className="text-3xl font-bold mb-2">{stats?.activeCases || 0}</div>
+              <p className="text-sm text-muted-foreground">
+                {stats?.activeCases === 0 ? 'No active cases' : `${stats?.activeCases} active case${stats?.activeCases !== 1 ? 's' : ''}`}
+              </p>
               <Button className="mt-4 w-full" onClick={() => navigate('/cases')}>
                 View Cases
               </Button>
@@ -65,10 +87,16 @@ const Dashboard = () => {
               <CardDescription>Search and manage suspects</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold mb-2">0</div>
-              <p className="text-sm text-muted-foreground">No suspects in database</p>
-              <Button className="mt-4 w-full" disabled={userRole === 'officer'}>
-                {userRole === 'officer' ? 'Access Restricted' : 'Manage Suspects'}
+              <div className="text-3xl font-bold mb-2">{stats?.totalSuspects || 0}</div>
+              <p className="text-sm text-muted-foreground">
+                {stats?.totalSuspects === 0 ? 'No suspects in database' : `${stats?.totalSuspects} suspect${stats?.totalSuspects !== 1 ? 's' : ''} in database`}
+              </p>
+              <Button 
+                className="mt-4 w-full" 
+                disabled={userRole === 'officer'}
+                onClick={() => navigate('/suspects')}
+              >
+                {userRole === 'officer' ? 'View Suspects' : 'Manage Suspects'}
               </Button>
             </CardContent>
           </Card>
@@ -80,9 +108,13 @@ const Dashboard = () => {
               <CardDescription>Latest facial recognition matches</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold mb-2">0</div>
-              <p className="text-sm text-muted-foreground">No recent matches</p>
-              <Button className="mt-4 w-full">View Matches</Button>
+              <div className="text-3xl font-bold mb-2">{stats?.recentMatches || 0}</div>
+              <p className="text-sm text-muted-foreground">
+                {stats?.recentMatches === 0 ? 'No recent matches' : `${stats?.recentMatches} recent match${stats?.recentMatches !== 1 ? 'es' : ''}`}
+              </p>
+              <Button className="mt-4 w-full" onClick={() => navigate('/cases')}>
+                View Matches
+              </Button>
             </CardContent>
           </Card>
 
