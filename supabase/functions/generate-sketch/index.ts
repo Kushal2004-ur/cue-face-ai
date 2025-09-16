@@ -27,61 +27,80 @@ serve(async (req) => {
     Style: Professional police sketch, black and white pencil drawing, realistic facial features, clear and identifiable, 
     front-facing portrait view, clean background. Focus on accuracy and detail for identification purposes.`;
 
-    // Generate image using OpenAI's image generation
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
+    // Generate image using Gemini's image generation
+    const imageResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('GEMINI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
         prompt: enhancedPrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'high',
-        output_format: 'png'
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH", 
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_NONE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_NONE"
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "image/png"
+        }
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error('OpenAI API error:', error);
+    if (!imageResponse.ok) {
+      const error = await imageResponse.json();
+      console.error('Gemini API error:', error);
       throw new Error(error.error?.message || 'Failed to generate sketch');
     }
 
-    const data = await response.json();
+    const imageData = await imageResponse.json();
     console.log('Generated sketch successfully');
 
-    // The response from gpt-image-1 contains base64 data directly
-    const base64Image = data.data[0].b64_json;
+    // Extract base64 image data
+    const base64Image = imageData.generatedImages[0].bytesBase64Encoded;
     
-    // Generate embedding for the sketch using OpenAI's text-embedding model
-    // We'll use the description as a proxy for visual embedding
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+    // Generate embedding for the sketch using Gemini's text embedding
+    const embeddingResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('GEMINI_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'text-embedding-3-small',
-        input: `Forensic sketch of person: ${description}`,
-        dimensions: 1536
+        content: {
+          parts: [{
+            text: `Forensic sketch of person: ${description}`
+          }]
+        },
+        taskType: "SEMANTIC_SIMILARITY",
+        outputDimensionality: 768
       }),
     });
 
-    if (!embeddingResponse.ok) {
-      console.error('Embedding generation failed, proceeding without embedding');
-    }
-
     let embedding = null;
-    try {
-      const embeddingData = await embeddingResponse.json();
-      embedding = embeddingData.data[0].embedding;
-      console.log('Generated embedding for sketch');
-    } catch (error) {
-      console.error('Error processing embedding:', error);
+    if (embeddingResponse.ok) {
+      try {
+        const embeddingData = await embeddingResponse.json();
+        embedding = embeddingData.embedding.values;
+        console.log('Generated embedding for sketch');
+      } catch (error) {
+        console.error('Error processing embedding:', error);
+      }
+    } else {
+      console.error('Embedding generation failed, proceeding without embedding');
     }
     
     // Initialize Supabase client
@@ -125,8 +144,8 @@ serve(async (req) => {
         meta: {
           description,
           generated_by: 'ai',
-          model: 'gpt-image-1',
-          embedding_model: embedding ? 'text-embedding-3-small' : null,
+          model: 'imagen-3.0-generate-001',
+          embedding_model: embedding ? 'text-embedding-004' : null,
           generated_at: new Date().toISOString()
         }
       })
