@@ -73,7 +73,8 @@ serve(async (req) => {
         evidence: {
           sketch_id: sketchId,
           match_type: 'ai_facial_similarity',
-          generated_at: new Date().toISOString()
+          generated_at: new Date().toISOString(),
+          model: 'gemini_text_embedding_004'
         }
       }));
 

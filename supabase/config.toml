@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.find-suspect-matches]
 verify_jwt = false
+
+[functions.generate-suspect-embedding]
+verify_jwt = false

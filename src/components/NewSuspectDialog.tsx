@@ -52,15 +52,34 @@ const NewSuspectDialog = ({ open, onOpenChange, onSuspectCreated }: NewSuspectDi
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
+      const { data: suspectData, error } = await supabase
         .from('suspects')
         .insert({
           name: values.name,
           notes: values.notes || null,
           photo_url: values.photo_url || null,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Generate embedding for the suspect if photo URL is provided
+      if (suspectData.photo_url) {
+        try {
+          await supabase.functions.invoke('generate-suspect-embedding', {
+            body: {
+              suspectId: suspectData.id,
+              photoUrl: suspectData.photo_url,
+              description: `${values.name} - ${values.notes || 'No additional description'}`
+            }
+          });
+          console.log('Embedding generated for suspect:', suspectData.id);
+        } catch (embeddingError) {
+          console.error('Failed to generate embedding:', embeddingError);
+          // Don't fail the whole operation, just log the error
+        }
+      }
 
       toast.success('Suspect added successfully');
       form.reset();

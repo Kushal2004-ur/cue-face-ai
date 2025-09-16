@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Cases from "./pages/Cases";
 import CaseDetail from "./pages/CaseDetail";
 import Suspects from "./pages/Suspects";
+import Matches from "./pages/Matches";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/suspects" element={
               <ProtectedRoute>
                 <Suspects />
+              </ProtectedRoute>
+            } />
+            <Route path="/matches" element={
+              <ProtectedRoute>
+                <Matches />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={
