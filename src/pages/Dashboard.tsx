@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Users } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, userRole, signOut } = useAuth();
@@ -123,13 +124,24 @@ const Dashboard = () => {
             <Card className="md:col-span-2 lg:col-span-3">
               <CardHeader>
                 <CardTitle>Admin Panel</CardTitle>
-                <CardDescription>System administration and audit logs</CardDescription>
+                <CardDescription>System administration and management tools</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button variant="outline">User Management</Button>
-                  <Button variant="outline">Audit Logs</Button>
-                  <Button variant="outline">System Settings</Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/admin')}
+                    className="h-20 flex flex-col items-center justify-center space-y-2"
+                  >
+                    <Users className="h-6 w-6" />
+                    <span>Full Admin Dashboard</span>
+                  </Button>
+                  <Button variant="outline" disabled className="opacity-50">
+                    System Settings
+                  </Button>
+                  <Button variant="outline" disabled className="opacity-50">
+                    Backup & Recovery
+                  </Button>
                 </div>
               </CardContent>
             </Card>
