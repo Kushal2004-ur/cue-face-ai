@@ -13,6 +13,7 @@ import Cases from "./pages/Cases";
 import CaseDetail from "./pages/CaseDetail";
 import Suspects from "./pages/Suspects";
 import Matches from "./pages/Matches";
+import PoliceStations from "./pages/PoliceStations";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -50,6 +51,11 @@ const App = () => (
             <Route path="/matches" element={
               <ProtectedRoute>
                 <Matches />
+              </ProtectedRoute>
+            } />
+            <Route path="/police-stations" element={
+              <ProtectedRoute requiredRole="analyst">
+                <PoliceStations />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

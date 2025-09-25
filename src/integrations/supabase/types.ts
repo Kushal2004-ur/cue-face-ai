@@ -170,6 +170,135 @@ export type Database = {
           },
         ]
       }
+      police_stations: {
+        Row: {
+          id: string
+          name: string
+          address: string
+          city: string
+          state: string
+          zip_code: string
+          contact_email: string
+          contact_phone: string
+          jurisdiction_area: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          address: string
+          city: string
+          state: string
+          zip_code: string
+          contact_email: string
+          contact_phone: string
+          jurisdiction_area?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          address?: string
+          city?: string
+          state?: string
+          zip_code?: string
+          contact_email?: string
+          contact_phone?: string
+          jurisdiction_area?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      alerts: {
+        Row: {
+          id: string
+          case_id: string
+          suspect_id: string
+          match_id: string | null
+          police_station_id: string
+          alert_type: string
+          status: string
+          priority: string
+          message: string
+          metadata: Json | null
+          sent_at: string | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          case_id: string
+          suspect_id: string
+          match_id?: string | null
+          police_station_id: string
+          alert_type?: string
+          status?: string
+          priority?: string
+          message: string
+          metadata?: Json | null
+          sent_at?: string | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          case_id?: string
+          suspect_id?: string
+          match_id?: string | null
+          police_station_id?: string
+          alert_type?: string
+          status?: string
+          priority?: string
+          message?: string
+          metadata?: Json | null
+          sent_at?: string | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_suspect_id_fkey"
+            columns: ["suspect_id"]
+            isOneToOne: false
+            referencedRelation: "suspects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_police_station_id_fkey"
+            columns: ["police_station_id"]
+            isOneToOne: false
+            referencedRelation: "police_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suspect_embeddings: {
         Row: {
           created_at: string | null

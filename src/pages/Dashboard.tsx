@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Users } from 'lucide-react';
+import { Users, Building, AlertTriangle } from 'lucide-react';
+import AlertNotifications from '@/components/AlertNotifications';
 
 const Dashboard = () => {
   const { user, userRole, signOut } = useAuth();
@@ -15,16 +16,20 @@ const Dashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const [casesResult, suspectsResult, matchesResult] = await Promise.all([
+      const [casesResult, suspectsResult, matchesResult, alertsResult, stationsResult] = await Promise.all([
         supabase.from('cases').select('id, status').eq('status', 'open'),
         supabase.from('suspects').select('id'),
-        supabase.from('matches').select('id, created_at').order('created_at', { ascending: false }).limit(10)
+        supabase.from('matches').select('id, created_at').order('created_at', { ascending: false }).limit(10),
+        supabase.from('alerts').select('id, status').eq('status', 'pending'),
+        supabase.from('police_stations').select('id')
       ]);
 
       return {
         activeCases: casesResult.data?.length || 0,
         totalSuspects: suspectsResult.data?.length || 0,
         recentMatches: matchesResult.data?.length || 0,
+        pendingAlerts: alertsResult.data?.length || 0,
+        policeStations: stationsResult.data?.length || 0,
       };
     },
   });
@@ -50,6 +55,7 @@ const Dashboard = () => {
             </Badge>
           </div>
           <div className="flex items-center space-x-4">
+            <AlertNotifications />
             <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
               {user?.email}
             </Button>
@@ -115,6 +121,52 @@ const Dashboard = () => {
               </p>
               <Button className="mt-4 w-full" onClick={() => navigate('/cases')}>
                 View Matches
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Police Stations Card - Only for analysts and admins */}
+          {(userRole === 'analyst' || userRole === 'admin') && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Police Network</CardTitle>
+                <CardDescription>Connected police stations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold mb-2">{stats?.policeStations || 0}</div>
+                <p className="text-sm text-muted-foreground">
+                  {stats?.policeStations === 0 ? 'No stations connected' : `${stats?.policeStations} station${stats?.policeStations !== 1 ? 's' : ''} connected`}
+                </p>
+                <Button 
+                  className="mt-4 w-full" 
+                  onClick={() => navigate('/police-stations')}
+                  variant="outline"
+                >
+                  <Building className="h-4 w-4 mr-2" />
+                  Manage Network
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Alerts Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Pending Alerts</CardTitle>
+              <CardDescription>Suspect match notifications</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold mb-2">{stats?.pendingAlerts || 0}</div>
+              <p className="text-sm text-muted-foreground">
+                {stats?.pendingAlerts === 0 ? 'No pending alerts' : `${stats?.pendingAlerts} alert${stats?.pendingAlerts !== 1 ? 's' : ''} pending`}
+              </p>
+              <Button 
+                className="mt-4 w-full" 
+                variant={stats?.pendingAlerts > 0 ? "destructive" : "outline"}
+                onClick={() => navigate('/police-stations?tab=alerts')}
+              >
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                View Alerts
               </Button>
             </CardContent>
           </Card>
