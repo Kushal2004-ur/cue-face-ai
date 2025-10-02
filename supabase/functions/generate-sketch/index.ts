@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { description, caseId } = await req.json();
+    const { description, caseId, originalDescription, clarifications } = await req.json();
 
     if (!description || !caseId) {
       throw new Error('Description and case ID are required');
@@ -133,7 +133,7 @@ serve(async (req) => {
       .from('case-evidence')
       .getPublicUrl(filePath);
 
-    // Save media record to database with embedding
+    // Save media record to database with embedding and clarification data
     const { data: mediaData, error: mediaError } = await supabase
       .from('media')
       .insert({
@@ -143,6 +143,8 @@ serve(async (req) => {
         embedding: embedding,
         meta: {
           description,
+          original_description: originalDescription || description,
+          clarifications: clarifications || [],
           generated_by: 'ai',
           model: 'imagen-3.0-generate-001',
           embedding_model: embedding ? 'text-embedding-004' : null,

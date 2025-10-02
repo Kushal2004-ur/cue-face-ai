@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Wand2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ChatClarification from './ChatClarification';
+import { detectAmbiguousTerms, buildRefinedDescription, Clarification } from '@/lib/ambiguousTerms';
 
 interface SketchGeneratorProps {
   caseId: string;
@@ -16,9 +18,12 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSketch, setGeneratedSketch] = useState<string | null>(null);
+  const [showClarification, setShowClarification] = useState(false);
+  const [detectedTerms, setDetectedTerms] = useState<any[]>([]);
+  const [originalDescription, setOriginalDescription] = useState('');
   const { toast } = useToast();
 
-  const generateSketch = async () => {
+  const initiateGeneration = async () => {
     if (!description.trim()) {
       toast({
         title: "Description Required",
@@ -28,13 +33,39 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
       return;
     }
 
+    // Detect ambiguous terms
+    const ambiguous = detectAmbiguousTerms(description.trim());
+    
+    if (ambiguous.length > 0) {
+      setOriginalDescription(description.trim());
+      setDetectedTerms(ambiguous);
+      setShowClarification(true);
+    } else {
+      // No ambiguous terms, generate directly
+      await generateSketch(description.trim(), description.trim());
+    }
+  };
+
+  const handleClarificationsComplete = async (clarifications: Clarification[]) => {
+    const refinedDescription = buildRefinedDescription(originalDescription, clarifications);
+    setShowClarification(false);
+    await generateSketch(originalDescription, refinedDescription, clarifications);
+  };
+
+  const generateSketch = async (
+    original: string,
+    refined: string,
+    clarifications?: Clarification[]
+  ) => {
     setIsGenerating(true);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-sketch', {
         body: {
-          description: description.trim(),
-          caseId
+          description: refined,
+          caseId,
+          originalDescription: original,
+          clarifications: clarifications || []
         }
       });
 
@@ -49,7 +80,8 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
           description: "AI sketch has been generated and saved to case evidence.",
         });
         onSketchGenerated?.();
-        setDescription(''); // Clear the input
+        setDescription('');
+        setOriginalDescription('');
       } else {
         throw new Error(data.error || 'Failed to generate sketch');
       }
@@ -64,6 +96,20 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
       setIsGenerating(false);
     }
   };
+
+  if (showClarification) {
+    return (
+      <ChatClarification
+        ambiguousTerms={detectedTerms}
+        onClarificationsComplete={handleClarificationsComplete}
+        onCancel={() => {
+          setShowClarification(false);
+          setDetectedTerms([]);
+          setOriginalDescription('');
+        }}
+      />
+    );
+  }
 
   return (
     <Card>
@@ -90,7 +136,7 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
         </div>
         
         <Button 
-          onClick={generateSketch}
+          onClick={initiateGeneration}
           disabled={isGenerating || !description.trim()}
           className="w-full"
         >
