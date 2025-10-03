@@ -9,7 +9,8 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { SystemStats } from '@/components/admin/SystemStats';
 import { AuditLogs } from '@/components/admin/AuditLogs';
 import { ReportsExports } from '@/components/admin/ReportsExports';
-import { Users, BarChart3, FileText, Download, ArrowLeft } from 'lucide-react';
+import { AlertSettings } from '@/components/admin/AlertSettings';
+import { Users, BarChart3, FileText, Download, ArrowLeft, Bell } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { user, userRole, signOut } = useAuth();
@@ -73,7 +74,7 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -81,6 +82,10 @@ const AdminDashboard = () => {
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Users
+            </TabsTrigger>
+            <TabsTrigger value="alerts" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              Alerts
             </TabsTrigger>
             <TabsTrigger value="audit" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -98,6 +103,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="users" className="space-y-6">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="alerts" className="space-y-6">
+            <AlertSettings />
           </TabsContent>
 
           <TabsContent value="audit" className="space-y-6">

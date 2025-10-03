@@ -84,9 +84,33 @@ serve(async (req) => {
 
       if (insertError) {
         console.error('Error saving matches:', insertError);
-        // Don't throw here, just log the error
       } else {
         console.log(`Saved ${matchRecords.length} high-confidence matches`);
+      }
+
+      // Get case details for alert
+      const { data: caseData } = await supabase
+        .from('cases')
+        .select('title')
+        .eq('id', caseId)
+        .single();
+
+      // Send Telegram alerts for high-confidence matches
+      for (const match of highConfidenceMatches) {
+        try {
+          await supabase.functions.invoke('send-telegram-alert', {
+            body: {
+              suspectName: match.suspect_name,
+              similarityScore: match.similarity_score,
+              caseId: caseId,
+              caseTitle: caseData?.title
+            }
+          });
+          console.log(`Telegram alert sent for suspect: ${match.suspect_name}`);
+        } catch (alertError) {
+          console.error('Error sending Telegram alert:', alertError);
+          // Don't fail the whole request if alert fails
+        }
       }
     }
 

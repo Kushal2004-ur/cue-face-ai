@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.generate-suspect-embedding]
 verify_jwt = false
+
+[functions.send-telegram-alert]
+verify_jwt = false
