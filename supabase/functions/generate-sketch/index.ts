@@ -1,6 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,147 +7,136 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { description, caseId, originalDescription, clarifications } = await req.json();
-
-    if (!description || !caseId) {
-      throw new Error('Description and case ID are required');
-    }
-
-    console.log('Generating sketch for case:', caseId, 'with description:', description);
-
-    // Enhanced prompt for forensic sketch generation
-    const enhancedPrompt = `Create a detailed forensic sketch drawing of a person based on this eyewitness description: "${description}". 
-    Style: Professional police sketch, black and white pencil drawing, realistic facial features, clear and identifiable, 
-    front-facing portrait view, clean background. Focus on accuracy and detail for identification purposes.`;
-
-    // Generate image using Gemini's image generation
-    const imageResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('GEMINI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: enhancedPrompt,
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH", 
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_NONE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_NONE"
-          }
-        ],
-        generationConfig: {
-          responseMimeType: "image/png"
-        }
-      }),
-    });
-
-    if (!imageResponse.ok) {
-      const error = await imageResponse.json();
-      console.error('Gemini API error:', error);
-      throw new Error(error.error?.message || 'Failed to generate sketch');
-    }
-
-    const imageData = await imageResponse.json();
-    console.log('Generated sketch successfully');
-
-    // Extract base64 image data
-    const base64Image = imageData.generatedImages[0].bytesBase64Encoded;
     
-    // Generate embedding for the sketch using Gemini's text embedding
-    const embeddingResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('GEMINI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        content: {
-          parts: [{
-            text: `Forensic sketch of person: ${description}`
-          }]
-        },
-        taskType: "SEMANTIC_SIMILARITY",
-        outputDimensionality: 768
-      }),
-    });
+    console.log('Generating sketch for case:', caseId);
+    console.log('Description:', description);
 
-    let embedding = null;
-    if (embeddingResponse.ok) {
-      try {
-        const embeddingData = await embeddingResponse.json();
-        embedding = embeddingData.embedding.values;
-        console.log('Generated embedding for sketch');
-      } catch (error) {
-        console.error('Error processing embedding:', error);
-      }
-    } else {
-      console.error('Embedding generation failed, proceeding without embedding');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
-    
-    // Initialize Supabase client
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Convert base64 to blob for storage
-    const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
-    const fileName = `sketch-${Date.now()}.png`;
-    const filePath = `${caseId}/${fileName}`;
+    // Build the prompt for forensic sketch generation
+    const forensicPrompt = `Create a highly detailed, realistic forensic sketch of a person based on this description: ${description}. 
+    
+The sketch should be:
+- In black and white or grayscale, like a professional police forensic sketch
+- Frontal view of the face
+- Highly detailed and realistic
+- Professional quality, as if drawn by a forensic artist
+- Clear facial features matching the description
+- No background, just the face portrait`;
+
+    console.log('Calling Lovable AI for image generation...');
+
+    // Call Lovable AI to generate the image
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: forensicPrompt
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
+      throw new Error(`Failed to generate sketch: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Received response from Lovable AI');
+
+    // Extract the generated image
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!imageUrl) {
+      throw new Error('No image generated in response');
+    }
+
+    // Convert base64 to blob
+    const base64Data = imageUrl.split(',')[1];
+    const imageBlob = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
 
     // Upload to Supabase Storage
+    const fileName = `sketch-${caseId}-${Date.now()}.png`;
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('case-evidence')
-      .upload(filePath, imageBuffer, {
+      .upload(fileName, imageBlob, {
         contentType: 'image/png',
         upsert: false
       });
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
-      throw new Error('Failed to upload sketch to storage');
+      throw new Error(`Failed to upload sketch: ${uploadError.message}`);
     }
 
-    console.log('Sketch uploaded to storage:', uploadData.path);
+    console.log('Sketch uploaded to storage:', fileName);
 
     // Get public URL
     const { data: urlData } = supabase.storage
       .from('case-evidence')
-      .getPublicUrl(filePath);
+      .getPublicUrl(fileName);
 
-    // Save media record to database with embedding and clarification data
+    const publicUrl = urlData.publicUrl;
+    console.log('Public URL:', publicUrl);
+
+    // Generate embedding for the description using Lovable AI
+    console.log('Generating embedding for description...');
+    const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-3-small',
+        input: description
+      }),
+    });
+
+    let embedding = null;
+    if (embeddingResponse.ok) {
+      const embeddingData = await embeddingResponse.json();
+      embedding = embeddingData.data?.[0]?.embedding;
+      console.log('Embedding generated successfully');
+    } else {
+      console.error('Failed to generate embedding, continuing without it');
+    }
+
+    // Save to media table with metadata
     const { data: mediaData, error: mediaError } = await supabase
       .from('media')
       .insert({
         case_id: caseId,
-        url: urlData.publicUrl,
+        url: publicUrl,
         type: 'sketch',
         embedding: embedding,
         meta: {
-          description,
-          original_description: originalDescription || description,
-          clarifications: clarifications || [],
-          generated_by: 'ai',
-          model: 'imagen-3.0-generate-001',
-          embedding_model: embedding ? 'text-embedding-004' : null,
-          generated_at: new Date().toISOString()
+          description: description,
+          originalDescription: originalDescription,
+          clarifications: clarifications,
+          generatedAt: new Date().toISOString()
         }
       })
       .select()
@@ -156,17 +144,16 @@ serve(async (req) => {
 
     if (mediaError) {
       console.error('Database insert error:', mediaError);
-      throw new Error('Failed to save sketch record');
+      throw new Error(`Failed to save sketch metadata: ${mediaError.message}`);
     }
 
-    console.log('Sketch saved to database:', mediaData.id);
+    console.log('Sketch saved to database with ID:', mediaData.id);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        sketchUrl: urlData.publicUrl,
-        mediaId: mediaData.id,
-        message: 'Sketch generated successfully' 
+      JSON.stringify({
+        success: true,
+        sketchUrl: publicUrl,
+        mediaId: mediaData.id
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -176,9 +163,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-sketch function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        success: false 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
       }),
       {
         status: 500,

@@ -63,9 +63,6 @@ enable_signup = false
 enable_confirmations = false
 template = "Your code is {{ .Code }}"
 
-[functions.generate-sketch]
-verify_jwt = false
-
 [functions.find-suspect-matches]
 verify_jwt = false
 
@@ -74,3 +71,6 @@ verify_jwt = false
 
 [functions.send-telegram-alert]
 verify_jwt = false
+
+[functions.generate-sketch]
+verify_jwt = true
