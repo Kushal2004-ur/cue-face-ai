@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2, Wand2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ChatClarification from './ChatClarification';
 import { detectAmbiguousTerms, buildRefinedDescription, Clarification } from '@/lib/ambiguousTerms';
 
@@ -21,6 +22,7 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const [showClarification, setShowClarification] = useState(false);
   const [detectedTerms, setDetectedTerms] = useState<any[]>([]);
   const [originalDescription, setOriginalDescription] = useState('');
+  const [showImageDialog, setShowImageDialog] = useState(false);
   const { toast } = useToast();
 
   const initiateGeneration = async () => {
@@ -159,16 +161,32 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
             <div className="border rounded-lg p-4 bg-muted/20">
               <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
                 <Image className="h-4 w-4" />
-                Latest generated sketch
+                Latest generated sketch - Click to view full size
               </div>
               <img 
                 src={generatedSketch} 
                 alt="AI Generated Sketch" 
-                className="w-full max-w-md mx-auto rounded-lg border"
+                className="w-full max-w-md mx-auto rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setShowImageDialog(true)}
               />
             </div>
           </div>
         )}
+
+        <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Generated Forensic Sketch</DialogTitle>
+            </DialogHeader>
+            <div className="flex justify-center">
+              <img 
+                src={generatedSketch || ''} 
+                alt="AI Generated Sketch - Full Size" 
+                className="max-w-full rounded-lg"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
