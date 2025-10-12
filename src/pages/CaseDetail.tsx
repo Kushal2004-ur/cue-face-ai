@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Upload, Users, FileImage, Paperclip } from 'lucide-react';
+import { ArrowLeft, Upload, Users, FileImage, Paperclip, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
+
 import SuspectLinking from '@/components/SuspectLinking';
 import SketchGenerator from '@/components/SketchGenerator';
 import AIMatching from '@/components/AIMatching';
@@ -17,6 +20,8 @@ const CaseDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: caseData, isLoading: caseLoading, refetch: refetchCase } = useQuery({
     queryKey: ['case', id],
@@ -84,6 +89,37 @@ const CaseDetail = () => {
     }
   };
 
+
+  const handleDeleteCase = async () => {
+    if (!id) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('cases')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Case Deleted",
+        description: "The case has been successfully deleted.",
+      });
+      
+      navigate('/cases');
+    } catch (error) {
+      console.error('Error deleting case:', error);
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete case. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getFileIcon = (type: string) => {
     if (type?.startsWith('image/')) return FileImage;
     return Paperclip;
@@ -130,9 +166,37 @@ const CaseDetail = () => {
                 </p>
               </div>
             </div>
-            <Badge variant={getStatusVariant(caseData.status)}>
-              {caseData.status}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Badge variant={getStatusVariant(caseData.status)}>
+                {caseData.status}
+              </Badge>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Case
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this case and all associated evidence, sketches, and suspect links. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteCase}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete Case'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
         </div>
       </header>
