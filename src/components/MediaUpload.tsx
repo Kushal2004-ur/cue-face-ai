@@ -75,26 +75,22 @@ const MediaUpload = ({ caseId, onUploadComplete }: MediaUploadProps) => {
         // Upload to Supabase Storage
         const { data: storageData, error: storageError } = await supabase.storage
           .from('case-evidence')
-          .upload(filePath, uploadFile.file);
+          .upload(filePath, uploadFile.file, {
+            contentType: uploadFile.file.type
+          });
 
         if (storageError) throw storageError;
 
-        // Get the public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('case-evidence')
-          .getPublicUrl(filePath);
-
-        // Save media record to database
+        // Save media record to database with file path (not full URL)
         const { error: dbError } = await supabase
           .from('media')
           .insert({
             case_id: caseId,
-            url: publicUrl,
+            url: filePath, // Store file path, not full URL
             type: uploadFile.file.type,
             meta: {
               filename: uploadFile.file.name,
               size: uploadFile.file.size,
-              storage_path: filePath,
             },
           });
 

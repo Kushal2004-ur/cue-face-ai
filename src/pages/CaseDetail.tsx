@@ -268,9 +268,17 @@ const CaseDetail = () => {
                       const Icon = getFileIcon(media.type || '');
                       const handleOpenMedia = async () => {
                         try {
+                          // Extract file path from URL (handle both old full URLs and new file paths)
+                          let filePath = media.url;
+                          
+                          // If it's a full URL, extract just the file path
+                          if (filePath.includes('storage/v1/object/public/case-evidence/')) {
+                            filePath = filePath.split('storage/v1/object/public/case-evidence/')[1];
+                          }
+                          
                           const { data, error } = await supabase.storage
                             .from('case-evidence')
-                            .createSignedUrl(media.url, 3600);
+                            .createSignedUrl(filePath, 3600);
                           
                           if (error) throw error;
                           if (data?.signedUrl) {
@@ -296,7 +304,7 @@ const CaseDetail = () => {
                             <Icon className="h-8 w-8 text-muted-foreground" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">
-                                {media.url.split('/').pop()}
+                                {(media.meta as any)?.filename || media.url.split('/').pop()}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {new Date(media.created_at).toLocaleDateString()}
