@@ -93,13 +93,9 @@ The sketch should be:
 
     console.log('Sketch uploaded to storage:', fileName);
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('case-evidence')
-      .getPublicUrl(fileName);
-
-    const publicUrl = urlData.publicUrl;
-    console.log('Public URL:', publicUrl);
+    // Store the file path instead of a public URL since bucket is private
+    const filePath = fileName;
+    console.log('File path:', filePath);
 
     // Generate embedding for the description using Lovable AI
     console.log('Generating embedding for description...');
@@ -124,12 +120,12 @@ The sketch should be:
       console.error('Failed to generate embedding, continuing without it');
     }
 
-    // Save to media table with metadata
+    // Save to media table with metadata (store file path, not URL)
     const { data: mediaData, error: mediaError } = await supabase
       .from('media')
       .insert({
         case_id: caseId,
-        url: publicUrl,
+        url: filePath,
         type: 'sketch',
         embedding: embedding,
         meta: {
@@ -149,10 +145,15 @@ The sketch should be:
 
     console.log('Sketch saved to database with ID:', mediaData.id);
 
+    // Generate a signed URL for the response (valid for 1 hour)
+    const { data: signedUrlData } = await supabase.storage
+      .from('case-evidence')
+      .createSignedUrl(filePath, 3600);
+
     return new Response(
       JSON.stringify({
         success: true,
-        sketchUrl: publicUrl,
+        sketchUrl: signedUrlData?.signedUrl || filePath,
         mediaId: mediaData.id
       }),
       {

@@ -266,8 +266,32 @@ const CaseDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {mediaData.map((media) => {
                       const Icon = getFileIcon(media.type || '');
+                      const handleOpenMedia = async () => {
+                        try {
+                          const { data, error } = await supabase.storage
+                            .from('case-evidence')
+                            .createSignedUrl(media.url, 3600);
+                          
+                          if (error) throw error;
+                          if (data?.signedUrl) {
+                            window.open(data.signedUrl, '_blank');
+                          }
+                        } catch (error) {
+                          console.error('Error opening media:', error);
+                          toast({
+                            title: "Error",
+                            description: "Failed to open file. Please try again.",
+                            variant: "destructive",
+                          });
+                        }
+                      };
+
                       return (
-                        <div key={media.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div 
+                          key={media.id} 
+                          className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={handleOpenMedia}
+                        >
                           <div className="flex items-center space-x-3">
                             <Icon className="h-8 w-8 text-muted-foreground" />
                             <div className="flex-1 min-w-0">
