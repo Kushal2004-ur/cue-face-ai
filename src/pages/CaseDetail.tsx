@@ -272,23 +272,34 @@ const CaseDetail = () => {
                           let filePath = media.url;
                           
                           // If it's a full URL, extract just the file path
-                          if (filePath.includes('storage/v1/object/public/case-evidence/')) {
-                            filePath = filePath.split('storage/v1/object/public/case-evidence/')[1];
+                          if (filePath.startsWith('http')) {
+                            // Extract the path after 'case-evidence/'
+                            const match = filePath.match(/case-evidence\/(.+)$/);
+                            if (match) {
+                              filePath = match[1];
+                            }
                           }
+                          
+                          console.log('Opening file with path:', filePath);
                           
                           const { data, error } = await supabase.storage
                             .from('case-evidence')
                             .createSignedUrl(filePath, 3600);
                           
-                          if (error) throw error;
+                          if (error) {
+                            console.error('Signed URL error:', error);
+                            throw error;
+                          }
+                          
                           if (data?.signedUrl) {
+                            console.log('Opening signed URL');
                             window.open(data.signedUrl, '_blank');
                           }
                         } catch (error) {
                           console.error('Error opening media:', error);
                           toast({
                             title: "Error",
-                            description: "Failed to open file. Please try again.",
+                            description: error instanceof Error ? error.message : "Failed to open file. Please try again.",
                             variant: "destructive",
                           });
                         }
