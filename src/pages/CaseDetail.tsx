@@ -293,37 +293,33 @@ const CaseDetail = () => {
                             }
                           }
                           
-                          console.log('Attempting to download file:', filePath);
+                          console.log('Getting signed URL for file:', filePath);
                           
-                          // Download the file and create a blob URL
-                          const { data: fileData, error } = await supabase.storage
-                            .from('case-evidence')
-                            .download(filePath);
+                          // Call edge function to get signed URL with proper authorization
+                          const { data, error } = await supabase.functions.invoke('get-media-url', {
+                            body: {
+                              filePath,
+                              mediaId: media.id
+                            }
+                          });
                           
-                          console.log('Download result:', { fileData, error });
+                          console.log('Signed URL response:', { data, error });
                           
                           if (error) {
-                            console.error('Download error details:', JSON.stringify(error, null, 2));
-                            throw new Error(error.message || 'Failed to download file');
+                            throw new Error(error.message || 'Failed to get file URL');
                           }
                           
-                          if (!fileData) {
-                            throw new Error('No file data returned');
+                          if (data?.signedUrl) {
+                            console.log('Opening signed URL');
+                            window.open(data.signedUrl, '_blank');
+                          } else {
+                            throw new Error('No signed URL returned');
                           }
-                          
-                          // Create a blob URL and open it
-                          const blobUrl = URL.createObjectURL(fileData);
-                          console.log('Opening blob URL');
-                          window.open(blobUrl, '_blank');
-                          
-                          // Clean up the blob URL after a delay
-                          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
                         } catch (error) {
-                          console.error('Full error object:', error);
-                          console.error('Error message:', error instanceof Error ? error.message : 'Unknown');
+                          console.error('Full error:', error);
                           toast({
                             title: "Error Opening File",
-                            description: error instanceof Error ? error.message : `Failed to open file: ${JSON.stringify(error)}`,
+                            description: error instanceof Error ? error.message : "Failed to open file. Please try again.",
                             variant: "destructive",
                           });
                         }
