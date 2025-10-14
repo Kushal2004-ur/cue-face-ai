@@ -293,20 +293,25 @@ const CaseDetail = () => {
                             }
                           }
                           
-                          console.log('Opening file with path:', filePath);
+                          console.log('Downloading file with path:', filePath);
                           
-                          const { data, error } = await supabase.storage
+                          // Download the file and create a blob URL
+                          const { data: fileData, error } = await supabase.storage
                             .from('case-evidence')
-                            .createSignedUrl(filePath, 3600);
+                            .download(filePath);
                           
                           if (error) {
-                            console.error('Signed URL error:', error);
+                            console.error('Download error:', error);
                             throw error;
                           }
                           
-                          if (data?.signedUrl) {
-                            console.log('Opening signed URL');
-                            window.open(data.signedUrl, '_blank');
+                          if (fileData) {
+                            // Create a blob URL and open it
+                            const blobUrl = URL.createObjectURL(fileData);
+                            window.open(blobUrl, '_blank');
+                            
+                            // Clean up the blob URL after a delay
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
                           }
                         } catch (error) {
                           console.error('Error opening media:', error);
