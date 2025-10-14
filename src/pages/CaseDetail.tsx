@@ -293,31 +293,37 @@ const CaseDetail = () => {
                             }
                           }
                           
-                          console.log('Downloading file with path:', filePath);
+                          console.log('Attempting to download file:', filePath);
                           
                           // Download the file and create a blob URL
                           const { data: fileData, error } = await supabase.storage
                             .from('case-evidence')
                             .download(filePath);
                           
+                          console.log('Download result:', { fileData, error });
+                          
                           if (error) {
-                            console.error('Download error:', error);
-                            throw error;
+                            console.error('Download error details:', JSON.stringify(error, null, 2));
+                            throw new Error(error.message || 'Failed to download file');
                           }
                           
-                          if (fileData) {
-                            // Create a blob URL and open it
-                            const blobUrl = URL.createObjectURL(fileData);
-                            window.open(blobUrl, '_blank');
-                            
-                            // Clean up the blob URL after a delay
-                            setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                          if (!fileData) {
+                            throw new Error('No file data returned');
                           }
+                          
+                          // Create a blob URL and open it
+                          const blobUrl = URL.createObjectURL(fileData);
+                          console.log('Opening blob URL');
+                          window.open(blobUrl, '_blank');
+                          
+                          // Clean up the blob URL after a delay
+                          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
                         } catch (error) {
-                          console.error('Error opening media:', error);
+                          console.error('Full error object:', error);
+                          console.error('Error message:', error instanceof Error ? error.message : 'Unknown');
                           toast({
-                            title: "Error",
-                            description: error instanceof Error ? error.message : "Failed to open file. Please try again.",
+                            title: "Error Opening File",
+                            description: error instanceof Error ? error.message : `Failed to open file: ${JSON.stringify(error)}`,
                             variant: "destructive",
                           });
                         }
