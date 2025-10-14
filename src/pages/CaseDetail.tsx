@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Upload, Users, FileImage, Paperclip, Trash2 } from 'lucide-react';
@@ -22,6 +22,19 @@ const CaseDetail = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Debug storage on mount
+  useEffect(() => {
+    const debugStorage = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-storage');
+        console.log('Storage verification:', data);
+      } catch (error) {
+        console.error('Storage verification error:', error);
+      }
+    };
+    debugStorage();
+  }, []);
 
   const { data: caseData, isLoading: caseLoading, refetch: refetchCase } = useQuery({
     queryKey: ['case', id],
