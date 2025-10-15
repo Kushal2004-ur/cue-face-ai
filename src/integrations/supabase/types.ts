@@ -170,6 +170,54 @@ export type Database = {
           },
         ]
       }
+      sketch_conversations: {
+        Row: {
+          case_id: string
+          conversation_data: Json
+          created_at: string
+          id: string
+          initial_description: string
+          media_id: string | null
+          refined_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          case_id: string
+          conversation_data?: Json
+          created_at?: string
+          id?: string
+          initial_description: string
+          media_id?: string | null
+          refined_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          case_id?: string
+          conversation_data?: Json
+          created_at?: string
+          id?: string
+          initial_description?: string
+          media_id?: string | null
+          refined_description?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sketch_conversations_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sketch_conversations_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suspect_embeddings: {
         Row: {
           created_at: string | null

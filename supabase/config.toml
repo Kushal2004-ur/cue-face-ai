@@ -72,5 +72,11 @@ verify_jwt = false
 [functions.send-telegram-alert]
 verify_jwt = false
 
+[functions.generate-clarifying-questions]
+verify_jwt = true
+
+[functions.refine-description]
+verify_jwt = true
+
 [functions.generate-sketch]
 verify_jwt = true

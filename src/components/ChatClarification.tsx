@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, Send } from 'lucide-react';
-import { AmbiguousTerm, Clarification } from '@/lib/ambiguousTerms';
 
 interface Message {
   type: 'system' | 'user';
@@ -12,28 +11,34 @@ interface Message {
   options?: string[];
 }
 
+interface Question {
+  question: string;
+  category: string;
+  options: string[];
+}
+
 interface ChatClarificationProps {
-  ambiguousTerms: AmbiguousTerm[];
-  onClarificationsComplete: (clarifications: Clarification[]) => void;
+  questions: Question[];
+  onClarificationsComplete: (questionsAndAnswers: Array<{ question: string; answer: string; category: string }>) => void;
   onCancel: () => void;
 }
 
 const ChatClarification = ({ 
-  ambiguousTerms, 
+  questions, 
   onClarificationsComplete,
   onCancel 
 }: ChatClarificationProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [clarifications, setClarifications] = useState<Clarification[]>([]);
+  const [questionsAndAnswers, setQuestionsAndAnswers] = useState<Array<{ question: string; answer: string; category: string }>>([]);
   const [messages, setMessages] = useState<Message[]>([
     {
       type: 'system',
-      content: `I detected ${ambiguousTerms.length} terms that need clarification. Let me ask you some questions to get more specific details.`
+      content: `I need to ask you ${questions.length} clarifying questions to refine the sketch. Let's get more specific details.`
     },
     {
       type: 'system',
-      content: ambiguousTerms[0]?.question || '',
-      options: ambiguousTerms[0]?.options || []
+      content: questions[0]?.question || '',
+      options: questions[0]?.options || []
     }
   ]);
   const [customAnswer, setCustomAnswer] = useState('');
@@ -50,7 +55,7 @@ const ChatClarification = ({
   };
 
   const recordAnswer = (answer: string) => {
-    const currentTerm = ambiguousTerms[currentIndex];
+    const currentQuestion = questions[currentIndex];
     
     // Add user message
     setMessages(prev => [...prev, {
@@ -58,36 +63,35 @@ const ChatClarification = ({
       content: answer
     }]);
 
-    // Record clarification
-    const newClarification: Clarification = {
-      term: currentTerm.term,
-      question: currentTerm.question,
+    // Record Q&A
+    const newQA = {
+      question: currentQuestion.question,
       answer: answer,
-      timestamp: new Date()
+      category: currentQuestion.category
     };
 
-    const updatedClarifications = [...clarifications, newClarification];
-    setClarifications(updatedClarifications);
+    const updatedQAs = [...questionsAndAnswers, newQA];
+    setQuestionsAndAnswers(updatedQAs);
 
     // Move to next question or complete
-    if (currentIndex < ambiguousTerms.length - 1) {
+    if (currentIndex < questions.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
       
       setMessages(prev => [...prev, {
         type: 'system',
-        content: ambiguousTerms[nextIndex].question,
-        options: ambiguousTerms[nextIndex].options
+        content: questions[nextIndex].question,
+        options: questions[nextIndex].options
       }]);
     } else {
       // All questions answered
       setMessages(prev => [...prev, {
         type: 'system',
-        content: 'Thank you! I have all the clarifications I need. Generating refined sketch...'
+        content: 'Thank you! I have all the clarifications I need. Refining description and generating sketch...'
       }]);
       
       setTimeout(() => {
-        onClarificationsComplete(updatedClarifications);
+        onClarificationsComplete(updatedQAs);
       }, 1000);
     }
   };
@@ -97,10 +101,10 @@ const ChatClarification = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5" />
-          Description Clarification
+          AI Clarification Assistant
         </CardTitle>
         <CardDescription>
-          Question {currentIndex + 1} of {ambiguousTerms.length}
+          Question {currentIndex + 1} of {questions.length}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -141,7 +145,7 @@ const ChatClarification = ({
           </div>
         </ScrollArea>
 
-        {currentIndex < ambiguousTerms.length && (
+        {currentIndex < questions.length && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
               Or type your own answer:

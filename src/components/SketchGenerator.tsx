@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ChatClarification from './ChatClarification';
-import { detectAmbiguousTerms, buildRefinedDescription, Clarification } from '@/lib/ambiguousTerms';
 
 interface SketchGeneratorProps {
   caseId: string;
@@ -20,9 +19,10 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedSketch, setGeneratedSketch] = useState<string | null>(null);
   const [showClarification, setShowClarification] = useState(false);
-  const [detectedTerms, setDetectedTerms] = useState<any[]>([]);
+  const [aiQuestions, setAiQuestions] = useState<any[]>([]);
   const [originalDescription, setOriginalDescription] = useState('');
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const initiateGeneration = async () => {
@@ -35,29 +35,91 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
       return;
     }
 
-    // Detect ambiguous terms
-    const ambiguous = detectAmbiguousTerms(description.trim());
-    
-    if (ambiguous.length > 0) {
-      setOriginalDescription(description.trim());
-      setDetectedTerms(ambiguous);
-      setShowClarification(true);
-    } else {
-      // No ambiguous terms, generate directly
-      await generateSketch(description.trim(), description.trim());
+    setIsGenerating(true);
+    setOriginalDescription(description.trim());
+
+    try {
+      // Generate clarifying questions using AI
+      const { data, error } = await supabase.functions.invoke('generate-clarifying-questions', {
+        body: { description: description.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.questions && data.questions.length > 0) {
+        setAiQuestions(data.questions);
+        setShowClarification(true);
+      } else {
+        // No questions generated, proceed directly
+        await generateSketch(description.trim(), description.trim(), []);
+      }
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate clarifying questions. Proceeding with sketch generation.",
+        variant: "destructive",
+      });
+      await generateSketch(description.trim(), description.trim(), []);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  const handleClarificationsComplete = async (clarifications: Clarification[]) => {
-    const refinedDescription = buildRefinedDescription(originalDescription, clarifications);
+  const handleClarificationsComplete = async (questionsAndAnswers: Array<{ question: string; answer: string; category: string }>) => {
     setShowClarification(false);
-    await generateSketch(originalDescription, refinedDescription, clarifications);
+    setIsGenerating(true);
+
+    try {
+      // Refine description using AI
+      const { data, error } = await supabase.functions.invoke('refine-description', {
+        body: {
+          originalDescription,
+          questionsAndAnswers
+        }
+      });
+
+      if (error) throw error;
+
+      const refinedDescription = data.refinedDescription || originalDescription;
+      
+      // Save conversation to database
+      const { data: convData, error: convError } = await supabase
+        .from('sketch_conversations')
+        .insert({
+          case_id: caseId,
+          initial_description: originalDescription,
+          refined_description: refinedDescription,
+          conversation_data: questionsAndAnswers
+        })
+        .select()
+        .single();
+
+      if (convError) {
+        console.error('Error saving conversation:', convError);
+      } else {
+        setConversationId(convData.id);
+      }
+
+      // Generate sketch with refined description
+      await generateSketch(originalDescription, refinedDescription, questionsAndAnswers);
+    } catch (error) {
+      console.error('Error refining description:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refine description. Using original description.",
+        variant: "destructive",
+      });
+      await generateSketch(originalDescription, originalDescription, questionsAndAnswers);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const generateSketch = async (
     original: string,
     refined: string,
-    clarifications?: Clarification[]
+    questionsAndAnswers: any[]
   ) => {
     setIsGenerating(true);
     
@@ -67,7 +129,7 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
           description: refined,
           caseId,
           originalDescription: original,
-          clarifications: clarifications || []
+          clarifications: questionsAndAnswers
         }
       });
 
@@ -76,6 +138,14 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
       }
 
       if (data.success) {
+        // Update conversation with media_id if we have a conversationId
+        if (conversationId && data.mediaId) {
+          await supabase
+            .from('sketch_conversations')
+            .update({ media_id: data.mediaId })
+            .eq('id', conversationId);
+        }
+
         setGeneratedSketch(data.sketchUrl);
         toast({
           title: "Sketch Generated",
@@ -84,6 +154,7 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
         onSketchGenerated?.();
         setDescription('');
         setOriginalDescription('');
+        setConversationId(null);
       } else {
         throw new Error(data.error || 'Failed to generate sketch');
       }
@@ -102,11 +173,11 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   if (showClarification) {
     return (
       <ChatClarification
-        ambiguousTerms={detectedTerms}
+        questions={aiQuestions}
         onClarificationsComplete={handleClarificationsComplete}
         onCancel={() => {
           setShowClarification(false);
-          setDetectedTerms([]);
+          setAiQuestions([]);
           setOriginalDescription('');
         }}
       />
