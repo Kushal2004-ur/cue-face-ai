@@ -1,0 +1,189 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { media_id, image_url } = await req.json();
+
+    if (!media_id && !image_url) {
+      throw new Error('Either media_id or image_url is required');
+    }
+
+    console.log('Generating sketch embedding for media_id:', media_id);
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    let imageUrl = image_url;
+    let targetMediaId = media_id;
+
+    // If media_id provided, fetch the media record to get image URL
+    if (media_id) {
+      const { data: mediaData, error: mediaError } = await supabase
+        .from('media')
+        .select('url, type, case_id')
+        .eq('id', media_id)
+        .single();
+
+      if (mediaError || !mediaData) {
+        console.error('Media fetch error:', mediaError);
+        throw new Error('Media record not found');
+      }
+
+      // Check if this is a storage path (starts with case-evidence/)
+      if (mediaData.url.startsWith('case-evidence/')) {
+        // Generate a signed URL for private storage
+        const { data: signedUrlData, error: signedUrlError } = await supabase
+          .storage
+          .from('case-evidence')
+          .createSignedUrl(mediaData.url.replace('case-evidence/', ''), 300); // 5 min expiry
+
+        if (signedUrlError) {
+          console.error('Signed URL error:', signedUrlError);
+          throw new Error('Failed to generate signed URL for image');
+        }
+
+        imageUrl = signedUrlData.signedUrl;
+      } else {
+        imageUrl = mediaData.url;
+      }
+    }
+
+    console.log('Fetching image for embedding from:', imageUrl ? 'provided URL' : 'storage');
+
+    // Step 1: Use Lovable AI vision model to generate detailed description of the image
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const visionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Analyze this forensic sketch or suspect photo in extreme detail. Describe all facial features, characteristics, distinctive marks, expressions, age, gender, hair, eyes, nose, mouth, face shape, skin tone, and any other identifying features. Be comprehensive and precise for forensic matching purposes.'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageUrl
+                }
+              }
+            ]
+          }
+        ]
+      }),
+    });
+
+    if (!visionResponse.ok) {
+      const errorText = await visionResponse.text();
+      console.error('Vision API error:', visionResponse.status, errorText);
+      throw new Error('Failed to analyze image with vision model');
+    }
+
+    const visionData = await visionResponse.json();
+    const imageDescription = visionData.choices?.[0]?.message?.content;
+
+    if (!imageDescription) {
+      throw new Error('No description returned from vision model');
+    }
+
+    console.log('Image description generated, length:', imageDescription.length);
+
+    // Step 2: Generate 1536-d embedding from the description using OpenAI
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY not configured');
+    }
+
+    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'text-embedding-3-small',
+        input: imageDescription,
+        dimensions: 1536
+      }),
+    });
+
+    if (!embeddingResponse.ok) {
+      const errorText = await embeddingResponse.text();
+      console.error('OpenAI embedding error:', embeddingResponse.status, errorText);
+      throw new Error('Failed to generate embedding');
+    }
+
+    const embeddingData = await embeddingResponse.json();
+    const embedding = embeddingData.data?.[0]?.embedding;
+
+    if (!embedding || !Array.isArray(embedding)) {
+      throw new Error('Invalid embedding returned from API');
+    }
+
+    console.log('Generated embedding, dimensions:', embedding.length);
+
+    // Step 3: Store embedding in media table
+    const { data: updateData, error: updateError } = await supabase
+      .from('media')
+      .update({ embedding })
+      .eq('id', targetMediaId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Database update error:', updateError);
+      throw new Error('Failed to store embedding in database');
+    }
+
+    console.log('Embedding saved successfully for media_id:', targetMediaId);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        media_id: targetMediaId,
+        embedding_length: embedding.length,
+        embedding_sample: embedding.slice(0, 8),
+        description_preview: imageDescription.substring(0, 200) + '...'
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+
+  } catch (error) {
+    console.error('Error in generate-sketch-embedding function:', error);
+    return new Response(
+      JSON.stringify({
+        error: error.message,
+        success: false
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+  }
+});

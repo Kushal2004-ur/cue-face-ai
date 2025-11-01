@@ -69,6 +69,9 @@ verify_jwt = false
 [functions.generate-suspect-embedding]
 verify_jwt = false
 
+[functions.generate-sketch-embedding]
+verify_jwt = true
+
 [functions.send-telegram-alert]
 verify_jwt = false
 
