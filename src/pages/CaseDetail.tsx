@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import MediaUpload from '@/components/MediaUpload';
-
+import FaceEmbedding from '@/components/FaceEmbedding';
 import SuspectLinking from '@/components/SuspectLinking';
 import SketchGenerator from '@/components/SketchGenerator';
 import AIMatching from '@/components/AIMatching';
@@ -328,10 +328,12 @@ const CaseDetail = () => {
                       return (
                         <div 
                           key={media.id} 
-                          className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                          onClick={handleOpenMedia}
+                          className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                         >
-                          <div className="flex items-center space-x-3">
+                          <div 
+                            className="flex items-center space-x-3 cursor-pointer"
+                            onClick={handleOpenMedia}
+                          >
                             <Icon className="h-8 w-8 text-muted-foreground" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">
@@ -342,6 +344,13 @@ const CaseDetail = () => {
                               </p>
                             </div>
                           </div>
+                          
+                          <FaceEmbedding 
+                            mediaId={media.id}
+                            mediaUrl={media.url}
+                            mediaType={media.type || undefined}
+                            onEmbeddingGenerated={refetchMedia}
+                          />
                         </div>
                       );
                     })}

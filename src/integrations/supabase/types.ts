@@ -355,10 +355,21 @@ export type Database = {
           suspect_photo_url: string
         }[]
       }
+      generate_face_embedding: { Args: { media_id: string }; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_analyst_or_admin: { Args: never; Returns: boolean }
       is_officer_or_above: { Args: never; Returns: boolean }
+      match_face: {
+        Args: { embedding_input: string }
+        Returns: {
+          case_id: string
+          id: string
+          similarity: number
+          type: string
+          url: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
