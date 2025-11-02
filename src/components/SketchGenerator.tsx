@@ -26,6 +26,8 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isMatching, setIsMatching] = useState(false);
   const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [isGeneratingEmbedding, setIsGeneratingEmbedding] = useState(false);
+  const [embeddingStatus, setEmbeddingStatus] = useState<'none' | 'generating' | 'ready'>('none');
   const { toast } = useToast();
 
   const initiateGeneration = async () => {
@@ -169,6 +171,7 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   ) => {
     setIsGenerating(true);
     setMatchResults([]);
+    setEmbeddingStatus('none');
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-sketch', {
@@ -194,10 +197,32 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
         }
 
         setGeneratedSketch(data.sketchUrl);
+        setEmbeddingStatus('generating');
+        
         toast({
           title: "Sketch Generated",
-          description: "AI sketch created successfully. Finding suspect matches...",
+          description: "Generating embedding and finding suspect matches...",
         });
+        
+        // Wait for embedding generation (give it some time)
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if embedding was created
+        const { data: mediaData } = await supabase
+          .from('media')
+          .select('embedding')
+          .eq('id', data.mediaId)
+          .single();
+        
+        if (mediaData?.embedding) {
+          setEmbeddingStatus('ready');
+          toast({
+            title: "Embedding Ready",
+            description: "Starting suspect matching...",
+          });
+        } else {
+          setEmbeddingStatus('none');
+        }
         
         // Automatically fetch matches after sketch generation
         await fetchMatches(data.mediaId);
@@ -281,15 +306,28 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
           <div className="space-y-2">
             <Label>Generated Sketch</Label>
             <div className="border rounded-lg p-4 bg-muted/20">
-              <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                <Image className="h-4 w-4" />
-                Latest generated sketch - Click to view full size
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Image className="h-4 w-4" />
+                  Latest generated sketch - Click to view full size
+                </div>
+                {embeddingStatus === 'generating' && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span className="text-muted-foreground">Generating embedding...</span>
+                  </div>
+                )}
+                {embeddingStatus === 'ready' && (
+                  <Badge variant="default" className="text-xs">
+                    ✅ Embedding ready
+                  </Badge>
+                )}
               </div>
               <img 
                 src={generatedSketch} 
                 alt="AI Generated Sketch" 
                 className="w-full max-w-md mx-auto rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => setShowImageDialog(true)}
+                onClick={() => setShowImageDialog(true)}
               />
             </div>
 
