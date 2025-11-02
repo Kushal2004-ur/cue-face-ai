@@ -150,10 +150,33 @@ The sketch should be:
       .from('case-evidence')
       .createSignedUrl(filePath, 3600);
 
+    const signedUrl = signedUrlData?.signedUrl || filePath;
+
+    // Automatically trigger suspect matching for the newly created sketch
+    try {
+      console.log('Triggering automatic suspect matching...');
+      const matchResponse = await supabase.functions.invoke('find-suspect-matches', {
+        body: {
+          caseId: caseId,
+          sketchId: mediaData.id,
+          threshold: 0.7
+        }
+      });
+
+      if (matchResponse.error) {
+        console.error('Error triggering automatic matching:', matchResponse.error);
+      } else {
+        console.log('Automatic matching triggered:', matchResponse.data);
+      }
+    } catch (matchError) {
+      console.error('Failed to trigger automatic matching:', matchError);
+      // Don't fail the whole request if matching fails
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        sketchUrl: signedUrlData?.signedUrl || filePath,
+        sketchUrl: signedUrl,
         mediaId: mediaData.id
       }),
       {

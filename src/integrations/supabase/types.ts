@@ -94,6 +94,8 @@ export type Database = {
           evidence: Json | null
           id: string
           score: number | null
+          source: string | null
+          status: string | null
           suspect_id: string | null
           threshold: number | null
         }
@@ -103,6 +105,8 @@ export type Database = {
           evidence?: Json | null
           id?: string
           score?: number | null
+          source?: string | null
+          status?: string | null
           suspect_id?: string | null
           threshold?: number | null
         }
@@ -112,6 +116,8 @@ export type Database = {
           evidence?: Json | null
           id?: string
           score?: number | null
+          source?: string | null
+          status?: string | null
           suspect_id?: string | null
           threshold?: number | null
         }

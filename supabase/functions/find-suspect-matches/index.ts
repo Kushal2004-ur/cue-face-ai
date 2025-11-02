@@ -70,6 +70,8 @@ serve(async (req) => {
         suspect_id: match.suspect_id,
         score: match.similarity_score,
         threshold: threshold,
+        status: 'pending',
+        source: 'auto_match',
         evidence: {
           sketch_id: sketchId,
           match_type: 'ai_facial_similarity',

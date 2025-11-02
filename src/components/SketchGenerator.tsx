@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, Wand2, Image } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,8 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const [originalDescription, setOriginalDescription] = useState('');
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [isMatching, setIsMatching] = useState(false);
+  const [matchResults, setMatchResults] = useState<any[]>([]);
   const { toast } = useToast();
 
   const initiateGeneration = async () => {
@@ -116,12 +119,56 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
     }
   };
 
+  const fetchMatches = async (mediaId: string) => {
+    setIsMatching(true);
+    try {
+      // Wait a moment for the edge function to process matches
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const { data: matches, error } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          suspects (
+            id,
+            name,
+            photo_url
+          )
+        `)
+        .eq('evidence->>sketch_id', mediaId)
+        .order('score', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error('Error fetching matches:', error);
+      } else {
+        setMatchResults(matches || []);
+        if (matches && matches.length > 0) {
+          toast({
+            title: "Matches Found",
+            description: `Found ${matches.length} potential suspect matches`,
+          });
+        } else {
+          toast({
+            title: "No Matches",
+            description: "No suspect matches found for this sketch",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching matches:', error);
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
   const generateSketch = async (
     original: string,
     refined: string,
     questionsAndAnswers: any[]
   ) => {
     setIsGenerating(true);
+    setMatchResults([]);
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-sketch', {
@@ -149,8 +196,12 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
         setGeneratedSketch(data.sketchUrl);
         toast({
           title: "Sketch Generated",
-          description: "AI sketch has been generated and saved to case evidence.",
+          description: "AI sketch created successfully. Finding suspect matches...",
         });
+        
+        // Automatically fetch matches after sketch generation
+        await fetchMatches(data.mediaId);
+        
         onSketchGenerated?.();
         setDescription('');
         setOriginalDescription('');
@@ -238,9 +289,53 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
                 src={generatedSketch} 
                 alt="AI Generated Sketch" 
                 className="w-full max-w-md mx-auto rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => setShowImageDialog(true)}
+              onClick={() => setShowImageDialog(true)}
               />
             </div>
+
+            {isMatching && (
+              <div className="mt-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">
+                    Matching in progress...
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {matchResults.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h3 className="text-sm font-semibold">Suspect Matches</h3>
+                {matchResults.map((match) => (
+                  <div
+                    key={match.id}
+                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      {match.suspects?.photo_url && (
+                        <img
+                          src={match.suspects.photo_url}
+                          alt={match.suspects.name}
+                          className="w-12 h-12 rounded object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">
+                          {match.suspects?.name || 'Unknown Suspect'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Match: {Math.round(match.score * 100)}%
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant={match.score >= 0.9 ? 'default' : 'secondary'}>
+                      {match.score >= 0.9 ? 'High' : 'Medium'} Confidence
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
