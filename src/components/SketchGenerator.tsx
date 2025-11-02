@@ -124,20 +124,21 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
   const fetchMatches = async (mediaId: string) => {
     setIsMatching(true);
     try {
-      // Wait a moment for the edge function to process matches
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const { data: matches, error } = await supabase
         .from('matches')
         .select(`
-          *,
+          id,
+          score,
+          status,
+          source,
           suspects (
             id,
             name,
             photo_url
           )
         `)
-        .eq('evidence->>sketch_id', mediaId)
+        .filter('evidence->>sketch_id', 'eq', mediaId)
+        .eq('source', 'auto_match')
         .order('score', { ascending: false })
         .limit(5);
 
@@ -197,35 +198,34 @@ const SketchGenerator = ({ caseId, onSketchGenerated }: SketchGeneratorProps) =>
         }
 
         setGeneratedSketch(data.sketchUrl);
-        setEmbeddingStatus('generating');
         
-        toast({
-          title: "Sketch Generated",
-          description: "Generating embedding and finding suspect matches...",
-        });
-        
-        // Wait for embedding generation (give it some time)
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        
-        // Check if embedding was created
-        const { data: mediaData } = await supabase
-          .from('media')
-          .select('embedding')
-          .eq('id', data.mediaId)
-          .single();
-        
-        if (mediaData?.embedding) {
+        // Check embedding status from response
+        if (data.embeddingGenerated) {
           setEmbeddingStatus('ready');
-          toast({
-            title: "Embedding Ready",
-            description: "Starting suspect matching...",
-          });
+          
+          // If matches were already found by the backend, display them
+          if (data.matches?.matches && data.matches.matches.length > 0) {
+            toast({
+              title: "Sketch Generated & Matched",
+              description: `Found ${data.matches.total_matches} potential suspect matches`,
+            });
+            
+            // Fetch the saved matches from the database
+            await fetchMatches(data.mediaId);
+          } else {
+            toast({
+              title: "Sketch Generated",
+              description: "No suspect matches found",
+            });
+          }
         } else {
           setEmbeddingStatus('none');
+          toast({
+            title: "Sketch Generated",
+            description: "Warning: Embedding generation failed",
+            variant: "destructive",
+          });
         }
-        
-        // Automatically fetch matches after sketch generation
-        await fetchMatches(data.mediaId);
         
         onSketchGenerated?.();
         setDescription('');

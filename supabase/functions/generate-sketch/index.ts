@@ -125,6 +125,7 @@ The sketch should be:
 
     // Generate embedding from the actual image using vision analysis
     console.log('Generating image-based embedding...');
+    let embeddingSuccess = false;
     try {
       const embeddingResult = await supabase.functions.invoke('generate-sketch-embedding', {
         body: {
@@ -134,12 +135,24 @@ The sketch should be:
 
       if (embeddingResult.error) {
         console.error('Error generating image embedding:', embeddingResult.error);
+        throw embeddingResult.error;
       } else {
-        console.log('Image embedding generated successfully');
+        console.log('Image embedding generated successfully:', embeddingResult.data);
+        embeddingSuccess = true;
       }
     } catch (embeddingError) {
       console.error('Failed to generate image embedding:', embeddingError);
-      // Continue anyway - the embedding can be generated later
+      // Return error since embedding is required for matching
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Failed to generate embedding for sketch'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Generate a signed URL for the response (valid for 1 hour)
@@ -149,32 +162,38 @@ The sketch should be:
 
     const signedUrl = signedUrlData?.signedUrl || filePath;
 
-    // Automatically trigger suspect matching for the newly created sketch
-    try {
-      console.log('Triggering automatic suspect matching...');
-      const matchResponse = await supabase.functions.invoke('find-suspect-matches', {
-        body: {
-          caseId: caseId,
-          sketchId: mediaData.id,
-          threshold: 0.7
-        }
-      });
+    // Automatically trigger suspect matching after embedding is ready
+    let matchResults = null;
+    if (embeddingSuccess) {
+      try {
+        console.log('Triggering automatic suspect matching...');
+        const matchResponse = await supabase.functions.invoke('find-suspect-matches', {
+          body: {
+            caseId: caseId,
+            sketchId: mediaData.id,
+            threshold: 0.7
+          }
+        });
 
-      if (matchResponse.error) {
-        console.error('Error triggering automatic matching:', matchResponse.error);
-      } else {
-        console.log('Automatic matching triggered:', matchResponse.data);
+        if (matchResponse.error) {
+          console.error('Error triggering automatic matching:', matchResponse.error);
+        } else {
+          console.log('Automatic matching completed:', matchResponse.data);
+          matchResults = matchResponse.data;
+        }
+      } catch (matchError) {
+        console.error('Failed to trigger automatic matching:', matchError);
+        // Don't fail the whole request if matching fails
       }
-    } catch (matchError) {
-      console.error('Failed to trigger automatic matching:', matchError);
-      // Don't fail the whole request if matching fails
     }
 
     return new Response(
       JSON.stringify({
         success: true,
         sketchUrl: signedUrl,
-        mediaId: mediaData.id
+        mediaId: mediaData.id,
+        embeddingGenerated: embeddingSuccess,
+        matches: matchResults
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
