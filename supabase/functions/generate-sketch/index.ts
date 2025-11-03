@@ -126,6 +126,7 @@ The sketch should be:
     // Generate embedding from the actual image using vision analysis
     console.log('Generating image-based embedding...');
     let embeddingSuccess = false;
+    
     try {
       const embeddingResult = await supabase.functions.invoke('generate-sketch-embedding', {
         body: {
@@ -133,20 +134,28 @@ The sketch should be:
         }
       });
 
+      console.log('Embedding result:', embeddingResult);
+
       if (embeddingResult.error) {
         console.error('Error generating image embedding:', embeddingResult.error);
-        throw embeddingResult.error;
-      } else {
-        console.log('Image embedding generated successfully:', embeddingResult.data);
-        embeddingSuccess = true;
+        throw new Error(embeddingResult.error.message || 'Failed to generate embedding');
       }
+      
+      if (!embeddingResult.data?.success) {
+        console.error('Embedding generation failed:', embeddingResult.data);
+        throw new Error(embeddingResult.data?.error || 'Embedding generation was not successful');
+      }
+
+      console.log('Image embedding generated successfully:', embeddingResult.data);
+      embeddingSuccess = true;
+      
     } catch (embeddingError) {
       console.error('Failed to generate image embedding:', embeddingError);
       // Return error since embedding is required for matching
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'Failed to generate embedding for sketch'
+          error: `Failed to generate embedding for sketch: ${embeddingError instanceof Error ? embeddingError.message : 'Unknown error'}`
         }),
         {
           status: 500,
