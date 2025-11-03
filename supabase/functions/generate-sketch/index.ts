@@ -126,36 +126,73 @@ The sketch should be:
     // Generate embedding from the actual image using vision analysis
     console.log('Generating image-based embedding...');
     let embeddingSuccess = false;
+    let retryCount = 0;
+    const maxRetries = 1;
     
-    try {
-      const embeddingResult = await supabase.functions.invoke('generate-sketch-embedding', {
-        body: {
-          media_id: mediaData.id
+    while (!embeddingSuccess && retryCount <= maxRetries) {
+      try {
+        if (retryCount > 0) {
+          console.log(`Retrying embedding generation (attempt ${retryCount + 1})...`);
+          // Wait 2 seconds before retry
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
-      });
+        
+        const embeddingResult = await supabase.functions.invoke('generate-sketch-embedding', {
+          body: {
+            media_id: mediaData.id
+          }
+        });
 
-      console.log('Embedding result:', embeddingResult);
+        console.log('Embedding result:', embeddingResult);
 
-      if (embeddingResult.error) {
-        console.error('Error generating image embedding:', embeddingResult.error);
-        throw new Error(embeddingResult.error.message || 'Failed to generate embedding');
+        if (embeddingResult.error) {
+          console.error('Error generating image embedding:', embeddingResult.error);
+          throw new Error(embeddingResult.error.message || 'Failed to generate embedding');
+        }
+        
+        if (!embeddingResult.data?.success) {
+          console.error('Embedding generation failed:', embeddingResult.data);
+          throw new Error(embeddingResult.data?.error || 'Embedding generation was not successful');
+        }
+
+        console.log('Image embedding generated successfully:', embeddingResult.data);
+        embeddingSuccess = true;
+        
+      } catch (embeddingError) {
+        console.error(`Embedding generation attempt ${retryCount + 1} failed:`, embeddingError);
+        retryCount++;
+        
+        if (retryCount > maxRetries) {
+          // Final retry failed, return error
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: `Failed to generate embedding after ${maxRetries + 1} attempts: ${embeddingError instanceof Error ? embeddingError.message : 'Unknown error'}`,
+              details: 'The sketch was created but embedding generation failed. Please try generating the embedding manually.'
+            }),
+            {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
+        }
       }
-      
-      if (!embeddingResult.data?.success) {
-        console.error('Embedding generation failed:', embeddingResult.data);
-        throw new Error(embeddingResult.data?.error || 'Embedding generation was not successful');
-      }
-
-      console.log('Image embedding generated successfully:', embeddingResult.data);
-      embeddingSuccess = true;
-      
-    } catch (embeddingError) {
-      console.error('Failed to generate image embedding:', embeddingError);
-      // Return error since embedding is required for matching
+    }
+    
+    // Verify embedding was actually saved to database
+    const { data: verifyMedia, error: verifyError } = await supabase
+      .from('media')
+      .select('embedding')
+      .eq('id', mediaData.id)
+      .single();
+    
+    if (verifyError || !verifyMedia?.embedding) {
+      console.error('Embedding verification failed:', verifyError);
       return new Response(
         JSON.stringify({
           success: false,
-          error: `Failed to generate embedding for sketch: ${embeddingError instanceof Error ? embeddingError.message : 'Unknown error'}`
+          error: 'Embedding generation completed but failed to save to database',
+          details: 'Please try regenerating the embedding'
         }),
         {
           status: 500,
@@ -163,6 +200,8 @@ The sketch should be:
         }
       );
     }
+    
+    console.log('Embedding verified in database');
 
     // Generate a signed URL for the response (valid for 1 hour)
     const { data: signedUrlData } = await supabase.storage
