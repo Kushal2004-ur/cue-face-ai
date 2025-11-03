@@ -41,23 +41,26 @@ serve(async (req) => {
         throw new Error('Media record not found');
       }
 
-      // Check if this is a storage path (starts with case-evidence/)
-      if (mediaData.url.startsWith('case-evidence/')) {
-        // Generate a signed URL for private storage
-        const { data: signedUrlData, error: signedUrlError } = await supabase
-          .storage
-          .from('case-evidence')
-          .createSignedUrl(mediaData.url.replace('case-evidence/', ''), 300); // 5 min expiry
+      console.log('Media URL from database:', mediaData.url);
 
-        if (signedUrlError) {
-          console.error('Signed URL error:', signedUrlError);
-          throw new Error('Failed to generate signed URL for image');
-        }
+      // The URL is stored as just the filename (e.g., "sketch-xxx.png")
+      // We need to generate a signed URL from the case-evidence bucket
+      const { data: signedUrlData, error: signedUrlError } = await supabase
+        .storage
+        .from('case-evidence')
+        .createSignedUrl(mediaData.url, 300); // 5 min expiry
 
-        imageUrl = signedUrlData.signedUrl;
-      } else {
-        imageUrl = mediaData.url;
+      if (signedUrlError) {
+        console.error('Signed URL error:', signedUrlError);
+        throw new Error(`Failed to generate signed URL for image: ${signedUrlError.message}`);
       }
+
+      if (!signedUrlData?.signedUrl) {
+        throw new Error('No signed URL generated');
+      }
+
+      imageUrl = signedUrlData.signedUrl;
+      console.log('Generated signed URL successfully');
     }
 
     console.log('Fetching image for embedding from:', imageUrl ? 'provided URL' : 'storage');
