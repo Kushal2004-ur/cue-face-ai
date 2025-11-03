@@ -111,6 +111,7 @@ serve(async (req) => {
     }
 
     console.log('Image description generated, length:', imageDescription.length);
+    console.log('Description preview:', imageDescription.substring(0, 200));
 
     // Step 2: Generate 1536-d embedding from the description using OpenAI
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
@@ -118,6 +119,7 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
+    console.log('Calling OpenAI embedding API with model: text-embedding-3-small');
     const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
       method: 'POST',
       headers: {
@@ -134,17 +136,42 @@ serve(async (req) => {
     if (!embeddingResponse.ok) {
       const errorText = await embeddingResponse.text();
       console.error('OpenAI embedding error:', embeddingResponse.status, errorText);
-      throw new Error('Failed to generate embedding');
+      throw new Error(`Failed to generate embedding: ${errorText}`);
     }
 
     const embeddingData = await embeddingResponse.json();
-    const embedding = embeddingData.data?.[0]?.embedding;
+    const rawEmbedding = embeddingData.data?.[0]?.embedding;
 
-    if (!embedding || !Array.isArray(embedding)) {
+    if (!rawEmbedding || !Array.isArray(rawEmbedding)) {
+      console.error('Invalid embedding structure:', embeddingData);
       throw new Error('Invalid embedding returned from API');
     }
 
+    // Validate and convert embedding to numbers
+    const embedding = rawEmbedding.map((val: any) => {
+      const num = Number(val);
+      if (isNaN(num)) {
+        throw new Error(`Invalid embedding value: ${val}`);
+      }
+      return num;
+    });
+
     console.log('Generated embedding, dimensions:', embedding.length);
+    console.log('First 8 values:', embedding.slice(0, 8));
+
+    // Validate embedding is not all zeros
+    const sumAbs = embedding.reduce((sum: number, val: number) => sum + Math.abs(val), 0);
+    console.log('Embedding sumAbs:', sumAbs);
+
+    if (sumAbs === 0) {
+      console.error('Embedding is all zeros! This indicates a failure.');
+      throw new Error('Generated embedding is invalid (all zeros)');
+    }
+
+    if (embedding.length !== 1536) {
+      console.error(`Unexpected embedding length: ${embedding.length}, expected 1536`);
+      throw new Error(`Invalid embedding dimensions: ${embedding.length}`);
+    }
 
     // Step 3: Store embedding in media table
     const { data: updateData, error: updateError } = await supabase
