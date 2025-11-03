@@ -28,7 +28,7 @@ serve(async (req) => {
     let imageUrl = image_url;
     let targetMediaId = media_id;
 
-    // If media_id provided, fetch the media record to get image URL
+    // If media_id provided, fetch the media record to get image
     if (media_id) {
       const { data: mediaData, error: mediaError } = await supabase
         .from('media')
@@ -43,27 +43,25 @@ serve(async (req) => {
 
       console.log('Media URL from database:', mediaData.url);
 
-      // The URL is stored as just the filename (e.g., "sketch-xxx.png")
-      // We need to generate a signed URL from the case-evidence bucket
-      const { data: signedUrlData, error: signedUrlError } = await supabase
+      // Download the image from storage and convert to base64
+      const { data: fileData, error: downloadError } = await supabase
         .storage
         .from('case-evidence')
-        .createSignedUrl(mediaData.url, 300); // 5 min expiry
+        .download(mediaData.url);
 
-      if (signedUrlError) {
-        console.error('Signed URL error:', signedUrlError);
-        throw new Error(`Failed to generate signed URL for image: ${signedUrlError.message}`);
+      if (downloadError || !fileData) {
+        console.error('Download error:', downloadError);
+        throw new Error(`Failed to download image: ${downloadError?.message}`);
       }
 
-      if (!signedUrlData?.signedUrl) {
-        throw new Error('No signed URL generated');
-      }
-
-      imageUrl = signedUrlData.signedUrl;
-      console.log('Generated signed URL successfully');
+      // Convert blob to base64
+      const arrayBuffer = await fileData.arrayBuffer();
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const mimeType = fileData.type || 'image/png';
+      imageUrl = `data:${mimeType};base64,${base64}`;
+      
+      console.log('Converted image to base64 data URL');
     }
-
-    console.log('Fetching image for embedding from:', imageUrl ? 'provided URL' : 'storage');
 
     // Step 1: Use Lovable AI vision model to generate detailed description of the image
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
