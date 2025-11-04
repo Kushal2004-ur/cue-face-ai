@@ -361,7 +361,9 @@ export type Database = {
           suspect_photo_url: string
         }[]
       }
-      generate_face_embedding: { Args: { media_id: string }; Returns: string }
+      generate_face_embedding:
+        | { Args: { description: string }; Returns: string }
+        | { Args: { p_media_id: string }; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_analyst_or_admin: { Args: never; Returns: boolean }
