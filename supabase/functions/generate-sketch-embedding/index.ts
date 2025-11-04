@@ -177,10 +177,13 @@ serve(async (req) => {
       throw new Error(`Invalid embedding dimensions: ${embedding.length}`);
     }
 
-    // Step 3: Store embedding in media table
+    // Step 3: Store embedding in media table and update ai_status
     const { data: updateData, error: updateError } = await supabase
       .from('media')
-      .update({ embedding })
+      .update({ 
+        embedding,
+        meta: { ai_status: 'ready_for_ai_matching' }
+      })
       .eq('id', targetMediaId)
       .select()
       .single();

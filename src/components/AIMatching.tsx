@@ -41,16 +41,15 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
       if (error) throw error;
       return data;
     },
-    // Smart polling: only poll if there are sketches without embeddings
+    // Smart polling: only poll if there are sketches without ready status
     refetchInterval: (query) => {
       const data = query.state.data;
-      const hasSketchesWithoutEmbeddings = data?.some(sketch => {
-        const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
-        const isGenerating = sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
-        return !hasEmbedding && isGenerating;
+      const hasGeneratingSketches = data?.some(sketch => {
+        const aiStatus = sketch.meta && typeof sketch.meta === 'object' ? (sketch.meta as any).ai_status : null;
+        return aiStatus !== 'ready_for_ai_matching' && sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
       });
       // Poll every 3 seconds if there are generating sketches, otherwise stop polling
-      return hasSketchesWithoutEmbeddings ? 3000 : false;
+      return hasGeneratingSketches ? 3000 : false;
     },
   });
 
@@ -150,15 +149,16 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           {(() => {
-                            const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
-                            const isGenerating = !hasEmbedding && sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
+                            const aiStatus = sketch.meta && typeof sketch.meta === 'object' ? (sketch.meta as any).ai_status : null;
+                            const isReady = aiStatus === 'ready_for_ai_matching';
+                            const isGenerating = !isReady && sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
                             
                             return (
                               <Badge 
-                                variant={hasEmbedding ? 'default' : 'secondary'} 
+                                variant={isReady ? 'default' : 'secondary'} 
                                 className="text-xs"
                               >
-                                {hasEmbedding 
+                                {isReady
                                   ? '✅ Ready for AI Suspect Match' 
                                   : isGenerating
                                     ? '⏳ Generating embedding...'
@@ -200,8 +200,8 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
             disabled={isSearching || !selectedSketch || (() => {
               const sketch = sketches?.find(s => s.id === selectedSketch);
               if (!sketch) return true;
-              const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
-              return !hasEmbedding;
+              const aiStatus = sketch.meta && typeof sketch.meta === 'object' ? (sketch.meta as any).ai_status : null;
+              return aiStatus !== 'ready_for_ai_matching';
             })()}
             className="w-full"
           >
