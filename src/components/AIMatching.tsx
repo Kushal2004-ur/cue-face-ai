@@ -145,7 +145,7 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
                           >
                             {sketch.embedding 
                               ? '✅ Ready for AI Suspect Match' 
-                              : sketch.meta?.generatedAt && !sketch.embedding 
+                              : (sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta) && !sketch.embedding 
                                 ? '⏳ Generating embedding...'
                                 : 'No embedding'
                             }
