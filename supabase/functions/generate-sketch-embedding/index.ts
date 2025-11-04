@@ -113,34 +113,38 @@ serve(async (req) => {
     console.log('Image description generated, length:', imageDescription.length);
     console.log('Description preview:', imageDescription.substring(0, 200));
 
-    // Step 2: Generate 1536-d embedding from the description using OpenAI
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    // Step 2: Generate 768-d embedding from the description using Gemini
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
-    console.log('Calling OpenAI embedding API with model: text-embedding-3-small');
-    const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'text-embedding-3-small',
-        input: imageDescription,
-        dimensions: 1536
-      }),
-    });
+    console.log('Calling Gemini embedding API with model: text-embedding-004');
+    const embeddingResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: {
+            parts: [{ text: imageDescription }]
+          },
+          taskType: 'SEMANTIC_SIMILARITY',
+          outputDimensionality: 768
+        }),
+      }
+    );
 
     if (!embeddingResponse.ok) {
       const errorText = await embeddingResponse.text();
-      console.error('OpenAI embedding error:', embeddingResponse.status, errorText);
+      console.error('Gemini embedding error:', embeddingResponse.status, errorText);
       throw new Error(`Failed to generate embedding: ${errorText}`);
     }
 
     const embeddingData = await embeddingResponse.json();
-    const rawEmbedding = embeddingData.data?.[0]?.embedding;
+    const rawEmbedding = embeddingData.embedding?.values;
 
     if (!rawEmbedding || !Array.isArray(rawEmbedding)) {
       console.error('Invalid embedding structure:', embeddingData);
@@ -168,8 +172,8 @@ serve(async (req) => {
       throw new Error('Generated embedding is invalid (all zeros)');
     }
 
-    if (embedding.length !== 1536) {
-      console.error(`Unexpected embedding length: ${embedding.length}, expected 1536`);
+    if (embedding.length !== 768) {
+      console.error(`Unexpected embedding length: ${embedding.length}, expected 768`);
       throw new Error(`Invalid embedding dimensions: ${embedding.length}`);
     }
 

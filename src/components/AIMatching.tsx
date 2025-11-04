@@ -28,7 +28,7 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
   const { toast } = useToast();
 
   // Fetch available sketches for this case
-  const { data: sketches, isLoading: sketchesLoading } = useQuery({
+  const { data: sketches, isLoading: sketchesLoading, refetch } = useQuery({
     queryKey: ['case-sketches', caseId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,6 +41,7 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
       if (error) throw error;
       return data;
     },
+    refetchInterval: 3000, // Auto-refresh every 3 seconds to detect embedding updates
   });
 
   const runAIMatching = async (sketchId: string) => {
@@ -139,7 +140,7 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
                         </p>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant={sketch.embedding ? 'default' : 'secondary'} className="text-xs">
-                            {sketch.embedding ? 'Ready for AI matching' : 'No embedding'}
+                            {sketch.embedding ? '✅ Ready for AI Suspect Match' : 'No embedding'}
                           </Badge>
                         </div>
                       </div>
