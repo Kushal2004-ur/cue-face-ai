@@ -41,7 +41,17 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
       if (error) throw error;
       return data;
     },
-    refetchInterval: 3000, // Auto-refresh every 3 seconds to detect embedding updates
+    // Smart polling: only poll if there are sketches without embeddings
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      const hasSketchesWithoutEmbeddings = data?.some(sketch => {
+        const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
+        const isGenerating = sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
+        return !hasEmbedding && isGenerating;
+      });
+      // Poll every 3 seconds if there are generating sketches, otherwise stop polling
+      return hasSketchesWithoutEmbeddings ? 3000 : false;
+    },
   });
 
   const runAIMatching = async (sketchId: string) => {
@@ -139,17 +149,24 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
                           {new Date(sketch.created_at).toLocaleDateString()}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge 
-                            variant={sketch.embedding ? 'default' : 'secondary'} 
-                            className="text-xs"
-                          >
-                            {sketch.embedding 
-                              ? '✅ Ready for AI Suspect Match' 
-                              : (sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta) && !sketch.embedding 
-                                ? '⏳ Generating embedding...'
-                                : 'No embedding'
-                            }
-                          </Badge>
+                          {(() => {
+                            const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
+                            const isGenerating = !hasEmbedding && sketch.meta && typeof sketch.meta === 'object' && 'generatedAt' in sketch.meta;
+                            
+                            return (
+                              <Badge 
+                                variant={hasEmbedding ? 'default' : 'secondary'} 
+                                className="text-xs"
+                              >
+                                {hasEmbedding 
+                                  ? '✅ Ready for AI Suspect Match' 
+                                  : isGenerating
+                                    ? '⏳ Generating embedding...'
+                                    : 'No embedding'
+                                }
+                              </Badge>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -180,7 +197,12 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
           {/* Search Button */}
           <Button 
             onClick={() => selectedSketch && runAIMatching(selectedSketch)}
-            disabled={isSearching || !selectedSketch || !sketches?.find(s => s.id === selectedSketch)?.embedding}
+            disabled={isSearching || !selectedSketch || (() => {
+              const sketch = sketches?.find(s => s.id === selectedSketch);
+              if (!sketch) return true;
+              const hasEmbedding = sketch.embedding && Array.isArray(sketch.embedding) && sketch.embedding.length > 0;
+              return !hasEmbedding;
+            })()}
             className="w-full"
           >
             {isSearching ? (
