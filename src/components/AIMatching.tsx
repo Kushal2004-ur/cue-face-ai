@@ -139,8 +139,16 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
                           {new Date(sketch.created_at).toLocaleDateString()}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant={sketch.embedding ? 'default' : 'secondary'} className="text-xs">
-                            {sketch.embedding ? '✅ Ready for AI Suspect Match' : 'No embedding'}
+                          <Badge 
+                            variant={sketch.embedding ? 'default' : 'secondary'} 
+                            className="text-xs"
+                          >
+                            {sketch.embedding 
+                              ? '✅ Ready for AI Suspect Match' 
+                              : sketch.meta?.generatedAt && !sketch.embedding 
+                                ? '⏳ Generating embedding...'
+                                : 'No embedding'
+                            }
                           </Badge>
                         </div>
                       </div>
