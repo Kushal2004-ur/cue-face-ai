@@ -54,9 +54,18 @@ serve(async (req) => {
         throw new Error(`Failed to download image: ${downloadError?.message}`);
       }
 
-      // Convert blob to base64
+      // Convert blob to base64 (handle large files by chunking)
       const arrayBuffer = await fileData.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const bytes = new Uint8Array(arrayBuffer);
+      const chunkSize = 8192;
+      let binary = '';
+      
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+        binary += String.fromCharCode(...chunk);
+      }
+      
+      const base64 = btoa(binary);
       const mimeType = fileData.type || 'image/png';
       imageUrl = `data:${mimeType};base64,${base64}`;
       
