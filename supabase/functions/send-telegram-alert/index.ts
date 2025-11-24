@@ -17,48 +17,33 @@ serve(async (req) => {
 
     console.log('Sending Telegram alert for:', { suspectName, similarityScore, caseId });
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get Telegram settings
-    const { data: settings, error: settingsError } = await supabase
-      .from('system_settings')
-      .select('value')
-      .eq('key', 'telegram_alerts')
-      .single();
-
-    if (settingsError) {
-      console.error('Error fetching settings:', settingsError);
-      throw new Error('Failed to fetch Telegram settings');
-    }
-
-    const telegramConfig = settings.value as { enabled: boolean; chat_id: string };
-
-    if (!telegramConfig.enabled || !telegramConfig.chat_id) {
-      console.log('Telegram alerts disabled or chat_id not configured');
-      return new Response(
-        JSON.stringify({ success: false, message: 'Telegram alerts not configured' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
+    // Get secrets directly from environment
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    const chatId = Deno.env.get('TELEGRAM_CHAT_ID');
+
+    // Log secret availability
+    console.log('Secrets loaded - bot:', !!botToken, 'chat:', !!chatId);
+
     if (!botToken) {
+      console.error('TELEGRAM_BOT_TOKEN not configured');
       throw new Error('TELEGRAM_BOT_TOKEN not configured');
+    }
+
+    if (!chatId) {
+      console.error('TELEGRAM_CHAT_ID not configured');
+      throw new Error('TELEGRAM_CHAT_ID not configured');
     }
 
     // Construct dashboard link
     const dashboardUrl = `https://inamnmxmxayyojuajddm.lovableproject.com/cases/${caseId}`;
 
-    // Format message with markdown
-    const message = `🚨 *High-Confidence Suspect Match Detected*\n\n` +
-      `*Suspect:* ${suspectName}\n` +
-      `*Similarity Score:* ${Math.round(similarityScore * 100)}%\n` +
-      `*Case:* ${caseTitle || 'Untitled'}\n` +
-      `*Case ID:* \`${caseId}\`\n\n` +
-      `[View Case Dashboard](${dashboardUrl})`;
+    // Format message with HTML (safer than Markdown for escaping)
+    const message = `🚨 <b>High-Confidence Suspect Match Detected</b>\n\n` +
+      `<b>Suspect:</b> ${suspectName}\n` +
+      `<b>Similarity Score:</b> ${Math.round(similarityScore * 100)}%\n` +
+      `<b>Case:</b> ${caseTitle || 'Untitled'}\n` +
+      `<b>Case ID:</b> <code>${caseId}</code>\n\n` +
+      `<a href="${dashboardUrl}">View Case Dashboard</a>`;
 
     // Send message via Telegram Bot API
     const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -68,9 +53,9 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: telegramConfig.chat_id,
+        chat_id: chatId,
         text: message,
-        parse_mode: 'Markdown',
+        parse_mode: 'HTML',
         disable_web_page_preview: false,
       }),
     });
