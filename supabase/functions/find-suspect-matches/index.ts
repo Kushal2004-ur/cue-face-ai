@@ -97,18 +97,32 @@ serve(async (req) => {
         .eq('id', caseId)
         .single();
 
-      // Send Telegram alerts for high-confidence matches
+      // Send Telegram alerts for high-confidence matches using POST with service role key
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      
       for (const match of highConfidenceMatches) {
         try {
-          await supabase.functions.invoke('send-telegram-alert', {
-            body: {
+          const alertResponse = await fetch(`${supabaseUrl}/functions/v1/send-telegram-alert`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${serviceRoleKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
               suspectName: match.suspect_name,
               similarityScore: match.similarity_score,
               caseId: caseId,
               caseTitle: caseData?.title
-            }
+            })
           });
-          console.log(`Telegram alert sent for suspect: ${match.suspect_name}`);
+          
+          if (!alertResponse.ok) {
+            const errorText = await alertResponse.text();
+            console.error(`Telegram alert failed for suspect ${match.suspect_name}:`, errorText);
+          } else {
+            console.log(`Telegram alert sent successfully for suspect: ${match.suspect_name}`);
+          }
         } catch (alertError) {
           console.error('Error sending Telegram alert:', alertError);
           // Don't fail the whole request if alert fails
