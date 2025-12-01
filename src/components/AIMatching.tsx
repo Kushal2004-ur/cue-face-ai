@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-import { Loader2, Search, Users, Brain, Target } from 'lucide-react';
+import { Loader2, Search, Users, Brain, Target, GitCompare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ComparisonModal } from './ComparisonModal';
 
 interface AIMatchingProps {
   caseId: string;
@@ -25,6 +26,12 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
   const [matches, setMatches] = useState<SketchMatch[]>([]);
   const [threshold, setThreshold] = useState([0.7]);
   const [selectedSketch, setSelectedSketch] = useState<string | null>(null);
+  const [comparisonMatch, setComparisonMatch] = useState<{
+    sketchUrl: string;
+    sketchId: string;
+    sketchDate: string;
+    match: SketchMatch;
+  } | null>(null);
   const { toast } = useToast();
 
   // Fetch available sketches for this case
@@ -234,39 +241,59 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {matches.map((match, index) => (
-                <div key={match.suspect_id} className="border rounded-lg p-4 flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="relative">
-                      {match.suspect_photo_url ? (
-                        <img 
-                          src={match.suspect_photo_url} 
-                          alt={match.suspect_name}
-                          className="h-16 w-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                          <Users className="h-8 w-8 text-muted-foreground" />
+              {matches.map((match, index) => {
+                const currentSketch = sketches?.find(s => s.id === selectedSketch);
+                return (
+                  <div key={match.suspect_id} className="border rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        {match.suspect_photo_url ? (
+                          <img 
+                            src={match.suspect_photo_url} 
+                            alt={match.suspect_name}
+                            className="h-16 w-16 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+                            <Users className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="absolute -top-1 -right-1 text-xs font-bold text-white bg-primary rounded-full w-5 h-5 flex items-center justify-center">
+                          {index + 1}
                         </div>
-                      )}
-                      <div className="absolute -top-1 -right-1 text-xs font-bold text-white bg-primary rounded-full w-5 h-5 flex items-center justify-center">
-                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{match.suspect_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {Math.round(match.similarity_score * 100)}% facial similarity
+                        </p>
                       </div>
                     </div>
-                    <div>
-                      <p className="font-medium">{match.suspect_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {Math.round(match.similarity_score * 100)}% facial similarity
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`${getConfidenceColor(match.similarity_score)} text-white`}>
+                        {getConfidenceLabel(match.similarity_score)} Confidence
+                      </Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (currentSketch) {
+                            setComparisonMatch({
+                              sketchUrl: currentSketch.url,
+                              sketchId: currentSketch.id,
+                              sketchDate: currentSketch.created_at,
+                              match,
+                            });
+                          }
+                        }}
+                      >
+                        <GitCompare className="h-4 w-4 mr-2" />
+                        Compare
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={`${getConfidenceColor(match.similarity_score)} text-white`}>
-                      {getConfidenceLabel(match.similarity_score)} Confidence
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -283,6 +310,23 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Comparison Modal */}
+      {comparisonMatch && (
+        <ComparisonModal
+          isOpen={!!comparisonMatch}
+          onClose={() => setComparisonMatch(null)}
+          sketchUrl={comparisonMatch.sketchUrl}
+          sketchId={comparisonMatch.sketchId}
+          sketchDate={comparisonMatch.sketchDate}
+          suspectPhotoUrl={comparisonMatch.match.suspect_photo_url}
+          suspectId={comparisonMatch.match.suspect_id}
+          suspectName={comparisonMatch.match.suspect_name}
+          similarityScore={comparisonMatch.match.similarity_score}
+          modelName="text-embedding-004"
+          caseId={caseId}
+        />
       )}
     </div>
   );

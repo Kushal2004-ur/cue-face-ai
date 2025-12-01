@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AlertCircle, Eye, Search, Users, FileText } from 'lucide-react';
+import { AlertCircle, Eye, Search, Users, FileText, GitCompare } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ComparisonModal } from "@/components/ComparisonModal";
 
 interface Match {
   id: string;
@@ -29,6 +30,16 @@ interface Match {
 const Matches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [comparisonData, setComparisonData] = useState<{
+    sketchUrl: string;
+    sketchId: string;
+    sketchDate: string;
+    suspectPhotoUrl: string;
+    suspectId: string;
+    suspectName: string;
+    similarityScore: number;
+    caseId: string;
+  } | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -57,6 +68,47 @@ const Matches = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCompare = async (match: Match) => {
+    try {
+      // Get sketch media for this case
+      const { data: sketchData, error: sketchError } = await supabase
+        .from('media')
+        .select('*')
+        .eq('case_id', match.case_id)
+        .eq('type', 'sketch')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (sketchError || !sketchData) {
+        toast({
+          title: "Sketch Not Found",
+          description: "No sketch found for this case",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setComparisonData({
+        sketchUrl: sketchData.url,
+        sketchId: sketchData.id,
+        sketchDate: sketchData.created_at,
+        suspectPhotoUrl: match.suspects.photo_url,
+        suspectId: match.suspect_id,
+        suspectName: match.suspects.name,
+        similarityScore: match.score,
+        caseId: match.case_id,
+      });
+    } catch (error) {
+      console.error('Error loading comparison data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load comparison data",
+        variant: "destructive",
+      });
     }
   };
 
@@ -150,26 +202,36 @@ const Matches = () => {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <MatchesList matches={matches} />
+          <MatchesList matches={matches} onCompare={handleCompare} />
         </TabsContent>
         
         <TabsContent value="high" className="space-y-4">
-          <MatchesList matches={highConfidenceMatches} />
+          <MatchesList matches={highConfidenceMatches} onCompare={handleCompare} />
         </TabsContent>
         
         <TabsContent value="medium" className="space-y-4">
-          <MatchesList matches={mediumConfidenceMatches} />
+          <MatchesList matches={mediumConfidenceMatches} onCompare={handleCompare} />
         </TabsContent>
         
         <TabsContent value="low" className="space-y-4">
-          <MatchesList matches={lowConfidenceMatches} />
+          <MatchesList matches={lowConfidenceMatches} onCompare={handleCompare} />
         </TabsContent>
       </Tabs>
+
+      {/* Comparison Modal */}
+      {comparisonData && (
+        <ComparisonModal
+          isOpen={!!comparisonData}
+          onClose={() => setComparisonData(null)}
+          {...comparisonData}
+          modelName="text-embedding-004"
+        />
+      )}
     </div>
   );
 };
 
-const MatchesList = ({ matches }: { matches: Match[] }) => {
+const MatchesList = ({ matches, onCompare }: { matches: Match[]; onCompare: (match: Match) => void }) => {
   if (matches.length === 0) {
     return (
       <Card>
@@ -240,6 +302,10 @@ const MatchesList = ({ matches }: { matches: Match[] }) => {
                 </div>
                 
                 <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => onCompare(match)}>
+                    <GitCompare className="h-4 w-4 mr-1" />
+                    Compare
+                  </Button>
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-1" />
                     View Details
