@@ -83,3 +83,6 @@ verify_jwt = true
 
 [functions.generate-sketch]
 verify_jwt = true
+
+[functions.get-media-url]
+verify_jwt = true

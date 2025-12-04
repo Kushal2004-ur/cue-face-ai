@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,8 @@ import {
   Link2, 
   X,
   AlertTriangle,
-  Loader2
+  Loader2,
+  ImageOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,6 +56,103 @@ export const ComparisonModal = ({
   const [isMarking, setIsMarking] = useState(false);
   const { toast } = useToast();
 
+  // Signed URL state
+  const [signedSketchUrl, setSignedSketchUrl] = useState<string | null>(null);
+  const [signedSuspectUrl, setSignedSuspectUrl] = useState<string | null>(null);
+  const [isLoadingUrls, setIsLoadingUrls] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Fetch signed URLs when modal opens
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when modal closes
+      setSignedSketchUrl(null);
+      setSignedSuspectUrl(null);
+      setUrlError(null);
+      return;
+    }
+
+    const fetchSignedUrls = async () => {
+      setIsLoadingUrls(true);
+      setUrlError(null);
+
+      try {
+        // Check if URLs are already signed/public (contain http)
+        const isSketchSigned = sketchUrl?.startsWith('http');
+        const isSuspectSigned = suspectPhotoUrl?.startsWith('http');
+
+        const promises: Promise<void>[] = [];
+
+        // Fetch sketch signed URL if needed
+        if (!isSketchSigned && sketchUrl) {
+          promises.push(
+            (async () => {
+              console.log('Fetching signed URL for sketch:', sketchId, sketchUrl);
+              const { data, error } = await supabase.functions.invoke('get-media-url', {
+                body: { mediaId: sketchId }
+              });
+
+              if (error) {
+                console.error('Error fetching sketch URL:', error);
+                throw new Error(`Failed to load sketch: ${error.message}`);
+              }
+
+              if (data?.signedUrl) {
+                console.log('Got signed sketch URL');
+                setSignedSketchUrl(data.signedUrl);
+              } else {
+                throw new Error('No signed URL returned for sketch');
+              }
+            })()
+          );
+        } else if (isSketchSigned) {
+          setSignedSketchUrl(sketchUrl);
+        }
+
+        // Fetch suspect photo signed URL if needed
+        if (!isSuspectSigned && suspectPhotoUrl) {
+          promises.push(
+            (async () => {
+              console.log('Fetching signed URL for suspect photo:', suspectPhotoUrl);
+              // Suspect photos may be stored directly as paths in suspects.photo_url
+              const { data, error } = await supabase.functions.invoke('get-media-url', {
+                body: { filePath: suspectPhotoUrl, bucket: 'case-evidence' }
+              });
+
+              if (error) {
+                console.error('Error fetching suspect photo URL:', error);
+                // Don't throw - suspect may not have a photo
+                return;
+              }
+
+              if (data?.signedUrl) {
+                console.log('Got signed suspect URL');
+                setSignedSuspectUrl(data.signedUrl);
+              }
+            })()
+          );
+        } else if (isSuspectSigned) {
+          setSignedSuspectUrl(suspectPhotoUrl);
+        }
+
+        await Promise.all(promises);
+
+      } catch (error) {
+        console.error('Error fetching signed URLs:', error);
+        setUrlError(error instanceof Error ? error.message : 'Failed to load images');
+        toast({
+          title: "Failed to load images",
+          description: error instanceof Error ? error.message : "Could not retrieve image URLs",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingUrls(false);
+      }
+    };
+
+    fetchSignedUrls();
+  }, [isOpen, sketchUrl, sketchId, suspectPhotoUrl, toast]);
+
   const getConfidenceBadge = (score: number) => {
     if (score >= 0.8) {
       return <Badge className="bg-green-600 text-white">High Confidence ≥80%</Badge>;
@@ -65,7 +163,16 @@ export const ComparisonModal = ({
     }
   };
 
-  const handleDownload = async (url: string, filename: string) => {
+  const handleDownload = async (url: string | null, filename: string) => {
+    if (!url) {
+      toast({
+        title: "Download Failed",
+        description: "Image URL not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -94,7 +201,6 @@ export const ComparisonModal = ({
   const handleLinkSuspect = async () => {
     setIsLinking(true);
     try {
-      // Insert into matches table with source 'manual_comparison'
       const { error } = await supabase
         .from('matches')
         .insert({
@@ -133,7 +239,6 @@ export const ComparisonModal = ({
   const handleMarkNotMatch = async () => {
     setIsMarking(true);
     try {
-      // Insert as false positive
       const { error } = await supabase
         .from('matches')
         .insert({
@@ -170,6 +275,24 @@ export const ComparisonModal = ({
     }
   };
 
+  // Image placeholder component
+  const ImagePlaceholder = ({ label }: { label: string }) => (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground">
+      <ImageOff className="h-12 w-12 mb-2" />
+      <p className="text-sm">{label}</p>
+    </div>
+  );
+
+  // Loading overlay component
+  const LoadingOverlay = () => (
+    <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading images...</p>
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] h-[95vh] p-0 gap-0">
@@ -193,6 +316,7 @@ export const ComparisonModal = ({
               variant={overlayMode ? "default" : "outline"}
               size="sm"
               onClick={() => setOverlayMode(!overlayMode)}
+              disabled={isLoadingUrls}
             >
               <Layers className="h-4 w-4 mr-2" />
               {overlayMode ? "Split View" : "Overlay Mode"}
@@ -203,7 +327,8 @@ export const ComparisonModal = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleDownload(sketchUrl, `sketch_${sketchId}.png`)}
+              onClick={() => handleDownload(signedSketchUrl, `sketch_${sketchId}.png`)}
+              disabled={!signedSketchUrl || isLoadingUrls}
             >
               <Download className="h-4 w-4 mr-2" />
               Sketch
@@ -211,7 +336,8 @@ export const ComparisonModal = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleDownload(suspectPhotoUrl, `suspect_${suspectName}.png`)}
+              onClick={() => handleDownload(signedSuspectUrl, `suspect_${suspectName}.png`)}
+              disabled={!signedSuspectUrl || isLoadingUrls}
             >
               <Download className="h-4 w-4 mr-2" />
               Photo
@@ -220,7 +346,21 @@ export const ComparisonModal = ({
         </div>
 
         {/* Image Comparison Area */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 relative">
+          {isLoadingUrls && <LoadingOverlay />}
+          
+          {urlError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
+              <div className="flex flex-col items-center gap-2 text-destructive">
+                <AlertTriangle className="h-8 w-8" />
+                <p className="text-sm">{urlError}</p>
+                <Button variant="outline" size="sm" onClick={onClose}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+
           {overlayMode ? (
             /* Overlay Mode with Opacity Control */
             <div className="space-y-4">
@@ -241,17 +381,23 @@ export const ComparisonModal = ({
                 <TransformWrapper>
                   <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
                     <div className="relative w-full h-full">
-                      <img
-                        src={suspectPhotoUrl}
-                        alt={suspectName}
-                        className="absolute inset-0 w-full h-full object-contain"
-                      />
-                      <img
-                        src={sketchUrl}
-                        alt="Generated Sketch"
-                        className="absolute inset-0 w-full h-full object-contain"
-                        style={{ opacity: overlayOpacity[0] / 100 }}
-                      />
+                      {signedSuspectUrl ? (
+                        <img
+                          src={signedSuspectUrl}
+                          alt={suspectName}
+                          className="absolute inset-0 w-full h-full object-contain"
+                        />
+                      ) : (
+                        <ImagePlaceholder label="No suspect photo" />
+                      )}
+                      {signedSketchUrl && (
+                        <img
+                          src={signedSketchUrl}
+                          alt="Generated Sketch"
+                          className="absolute inset-0 w-full h-full object-contain"
+                          style={{ opacity: overlayOpacity[0] / 100 }}
+                        />
+                      )}
                     </div>
                   </TransformComponent>
                 </TransformWrapper>
@@ -282,31 +428,35 @@ export const ComparisonModal = ({
                       Created: {new Date(sketchDate).toLocaleString()}
                     </p>
                   </div>
-                  <div className="border rounded-lg overflow-hidden bg-muted aspect-[3/4]">
-                    <TransformWrapper>
-                      {({ zoomIn, zoomOut, resetTransform }) => (
-                        <>
-                          <div className="absolute top-2 right-2 z-10 flex gap-1 bg-background/80 rounded-md p-1">
-                            <Button size="icon" variant="ghost" onClick={() => zoomIn()}>
-                              <ZoomIn className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => zoomOut()}>
-                              <ZoomOut className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => resetTransform()}>
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
-                            <img
-                              src={sketchUrl}
-                              alt="Generated Sketch"
-                              className="w-full h-full object-contain"
-                            />
-                          </TransformComponent>
-                        </>
-                      )}
-                    </TransformWrapper>
+                  <div className="border rounded-lg overflow-hidden bg-muted aspect-[3/4] relative">
+                    {signedSketchUrl ? (
+                      <TransformWrapper>
+                        {({ zoomIn, zoomOut, resetTransform }) => (
+                          <>
+                            <div className="absolute top-2 right-2 z-10 flex gap-1 bg-background/80 rounded-md p-1">
+                              <Button size="icon" variant="ghost" onClick={() => zoomIn()}>
+                                <ZoomIn className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => zoomOut()}>
+                                <ZoomOut className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => resetTransform()}>
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
+                              <img
+                                src={signedSketchUrl}
+                                alt="Generated Sketch"
+                                className="w-full h-full object-contain"
+                              />
+                            </TransformComponent>
+                          </>
+                        )}
+                      </TransformWrapper>
+                    ) : (
+                      <ImagePlaceholder label="Sketch loading..." />
+                    )}
                   </div>
                 </div>
 
@@ -318,31 +468,35 @@ export const ComparisonModal = ({
                       {suspectPhotoDate ? `Photo: ${new Date(suspectPhotoDate).toLocaleString()}` : 'Suspect Photo'}
                     </p>
                   </div>
-                  <div className="border rounded-lg overflow-hidden bg-muted aspect-[3/4]">
-                    <TransformWrapper>
-                      {({ zoomIn, zoomOut, resetTransform }) => (
-                        <>
-                          <div className="absolute top-2 right-2 z-10 flex gap-1 bg-background/80 rounded-md p-1">
-                            <Button size="icon" variant="ghost" onClick={() => zoomIn()}>
-                              <ZoomIn className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => zoomOut()}>
-                              <ZoomOut className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => resetTransform()}>
-                              <RotateCcw className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
-                            <img
-                              src={suspectPhotoUrl}
-                              alt={suspectName}
-                              className="w-full h-full object-contain"
-                            />
-                          </TransformComponent>
-                        </>
-                      )}
-                    </TransformWrapper>
+                  <div className="border rounded-lg overflow-hidden bg-muted aspect-[3/4] relative">
+                    {signedSuspectUrl ? (
+                      <TransformWrapper>
+                        {({ zoomIn, zoomOut, resetTransform }) => (
+                          <>
+                            <div className="absolute top-2 right-2 z-10 flex gap-1 bg-background/80 rounded-md p-1">
+                              <Button size="icon" variant="ghost" onClick={() => zoomIn()}>
+                                <ZoomIn className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => zoomOut()}>
+                                <ZoomOut className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" onClick={() => resetTransform()}>
+                                <RotateCcw className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
+                              <img
+                                src={signedSuspectUrl}
+                                alt={suspectName}
+                                className="w-full h-full object-contain"
+                              />
+                            </TransformComponent>
+                          </>
+                        )}
+                      </TransformWrapper>
+                    ) : (
+                      <ImagePlaceholder label="No suspect photo available" />
+                    )}
                   </div>
                 </div>
               </div>
@@ -351,21 +505,27 @@ export const ComparisonModal = ({
               <div className="max-w-4xl mx-auto">
                 <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                   <div className="relative w-full h-full">
-                    <img
-                      src={suspectPhotoUrl}
-                      alt={suspectName}
-                      className="absolute inset-0 w-full h-full object-contain"
-                    />
-                    <div
-                      className="absolute inset-0 overflow-hidden"
-                      style={{ clipPath: `inset(0 ${100 - swipePosition[0]}% 0 0)` }}
-                    >
+                    {signedSuspectUrl ? (
                       <img
-                        src={sketchUrl}
-                        alt="Generated Sketch"
+                        src={signedSuspectUrl}
+                        alt={suspectName}
                         className="absolute inset-0 w-full h-full object-contain"
                       />
-                    </div>
+                    ) : (
+                      <ImagePlaceholder label="No suspect photo" />
+                    )}
+                    {signedSketchUrl && (
+                      <div
+                        className="absolute inset-0 overflow-hidden"
+                        style={{ clipPath: `inset(0 ${100 - swipePosition[0]}% 0 0)` }}
+                      >
+                        <img
+                          src={signedSketchUrl}
+                          alt="Generated Sketch"
+                          className="absolute inset-0 w-full h-full object-contain"
+                        />
+                      </div>
+                    )}
                     <div
                       className="absolute top-0 bottom-0 w-0.5 bg-primary shadow-lg"
                       style={{ left: `${swipePosition[0]}%` }}
