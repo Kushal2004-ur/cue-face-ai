@@ -12,15 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { filePath, mediaId } = await req.json();
+    const { filePath, mediaId, bucket = 'case-evidence' } = await req.json();
     
-    console.log('Generating signed URL for:', { filePath, mediaId });
+    console.log('Generating signed URL for:', { filePath, mediaId, bucket });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Verify the user has access to this media by checking the case
+    // Verify the user is authenticated
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('No authorization header');
@@ -34,57 +34,74 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    // Verify user has access to this media through the case
-    const { data: mediaData, error: mediaError } = await supabase
-      .from('media')
-      .select('case_id')
-      .eq('id', mediaId)
-      .single();
+    let targetFilePath = filePath;
+    let caseIdForAuth: string | null = null;
 
-    if (mediaError || !mediaData) {
-      throw new Error('Media not found');
+    // If mediaId is provided, look up the file path from the media table
+    if (mediaId) {
+      const { data: mediaData, error: mediaError } = await supabase
+        .from('media')
+        .select('url, case_id')
+        .eq('id', mediaId)
+        .single();
+
+      if (mediaError || !mediaData) {
+        console.error('Media lookup error:', mediaError);
+        throw new Error('Media not found');
+      }
+
+      targetFilePath = mediaData.url;
+      caseIdForAuth = mediaData.case_id;
+
+      // Verify user has access to this case
+      const { data: caseData, error: caseError } = await supabase
+        .from('cases')
+        .select('created_by')
+        .eq('id', caseIdForAuth)
+        .single();
+
+      if (caseError || !caseData) {
+        throw new Error('Case not found');
+      }
+
+      // Check if user is the case creator or has analyst/admin role
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      const isAuthorized = 
+        caseData.created_by === user.id || 
+        userData?.role === 'admin' || 
+        userData?.role === 'analyst';
+
+      if (!isAuthorized) {
+        throw new Error('Access denied');
+      }
     }
 
-    const { data: caseData, error: caseError } = await supabase
-      .from('cases')
-      .select('created_by')
-      .eq('id', mediaData.case_id)
-      .single();
-
-    if (caseError || !caseData) {
-      throw new Error('Case not found');
+    if (!targetFilePath) {
+      throw new Error('No file path provided');
     }
 
-    // Check if user is the case creator or has analyst/admin role
-    const { data: userData } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-
-    const isAuthorized = 
-      caseData.created_by === user.id || 
-      userData?.role === 'admin' || 
-      userData?.role === 'analyst';
-
-    if (!isAuthorized) {
-      throw new Error('Access denied');
-    }
-
-    // Generate signed URL using service role
+    // Generate signed URL valid for 2 minutes (120 seconds)
     const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-      .from('case-evidence')
-      .createSignedUrl(filePath, 3600);
+      .from(bucket)
+      .createSignedUrl(targetFilePath, 120);
 
     if (signedUrlError) {
       console.error('Signed URL error:', signedUrlError);
       throw signedUrlError;
     }
 
+    console.log('Successfully generated signed URL for:', targetFilePath);
+
     return new Response(
       JSON.stringify({
         success: true,
-        signedUrl: signedUrlData.signedUrl
+        signedUrl: signedUrlData.signedUrl,
+        expiresIn: 120
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
