@@ -26,7 +26,8 @@ interface ComparisonModalProps {
   sketchUrl: string;
   sketchId: string;
   sketchDate: string;
-  suspectPhotoUrl: string;
+  suspectPhotoUrl?: string;
+  suspectPhotoMediaId?: string;
   suspectId: string;
   suspectName: string;
   suspectPhotoDate?: string;
@@ -42,6 +43,7 @@ export const ComparisonModal = ({
   sketchId,
   sketchDate,
   suspectPhotoUrl,
+  suspectPhotoMediaId,
   suspectId,
   suspectName,
   suspectPhotoDate,
@@ -77,13 +79,10 @@ export const ComparisonModal = ({
       setUrlError(null);
 
       try {
-        // Check if URLs are already signed/public (contain http)
-        const isSketchSigned = sketchUrl?.startsWith('http');
-        const isSuspectSigned = suspectPhotoUrl?.startsWith('http');
-
         const promises: Promise<void>[] = [];
 
-        // Fetch sketch signed URL if needed
+        // Fetch sketch signed URL
+        const isSketchSigned = sketchUrl?.startsWith('http');
         if (!isSketchSigned && sketchUrl) {
           promises.push(
             (async () => {
@@ -109,31 +108,29 @@ export const ComparisonModal = ({
           setSignedSketchUrl(sketchUrl);
         }
 
-        // Fetch suspect photo signed URL if needed
-        if (!isSuspectSigned && suspectPhotoUrl) {
-          promises.push(
-            (async () => {
-              console.log('Fetching signed URL for suspect photo:', suspectPhotoUrl);
-              // Suspect photos may be stored directly as paths in suspects.photo_url
-              const { data, error } = await supabase.functions.invoke('get-media-url', {
-                body: { filePath: suspectPhotoUrl, bucket: 'case-evidence' }
-              });
+        // Fetch suspect photo signed URL using suspectId
+        // This calls the edge function which looks up the suspect's photo_url or photo_media_id
+        promises.push(
+          (async () => {
+            console.log('Fetching signed URL for suspect:', suspectId);
+            const { data, error } = await supabase.functions.invoke('get-media-url', {
+              body: { suspectId }
+            });
 
-              if (error) {
-                console.error('Error fetching suspect photo URL:', error);
-                // Don't throw - suspect may not have a photo
-                return;
-              }
+            if (error) {
+              console.error('Error fetching suspect photo URL:', error);
+              // Don't throw - suspect may not have a photo
+              return;
+            }
 
-              if (data?.signedUrl) {
-                console.log('Got signed suspect URL');
-                setSignedSuspectUrl(data.signedUrl);
-              }
-            })()
-          );
-        } else if (isSuspectSigned) {
-          setSignedSuspectUrl(suspectPhotoUrl);
-        }
+            if (data?.signedUrl) {
+              console.log('Got signed suspect URL:', data.isPublic ? '(public)' : '(signed)');
+              setSignedSuspectUrl(data.signedUrl);
+            } else {
+              console.log('Suspect has no photo:', data?.message);
+            }
+          })()
+        );
 
         await Promise.all(promises);
 
@@ -151,7 +148,7 @@ export const ComparisonModal = ({
     };
 
     fetchSignedUrls();
-  }, [isOpen, sketchUrl, sketchId, suspectPhotoUrl, toast]);
+  }, [isOpen, sketchUrl, sketchId, suspectId, toast]);
 
   const getConfidenceBadge = (score: number) => {
     if (score >= 0.8) {
