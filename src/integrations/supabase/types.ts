@@ -361,6 +361,7 @@ export type Database = {
           similarity_score: number
           suspect_id: string
           suspect_name: string
+          suspect_photo_media_id: string
           suspect_photo_url: string
         }[]
       }

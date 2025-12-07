@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const { filePath, mediaId, bucket = 'case-evidence' } = await req.json();
+    const { filePath, mediaId, suspectId, bucket = 'case-evidence' } = await req.json();
     
-    console.log('Generating signed URL for:', { filePath, mediaId, bucket });
+    console.log('Generating signed URL for:', { filePath, mediaId, suspectId, bucket });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -35,7 +35,73 @@ serve(async (req) => {
     }
 
     let targetFilePath = filePath;
-    let caseIdForAuth: string | null = null;
+
+    // If suspectId is provided, look up the suspect's photo
+    if (suspectId) {
+      console.log('Looking up suspect photo for suspectId:', suspectId);
+      const { data: suspectData, error: suspectError } = await supabase
+        .from('suspects')
+        .select('photo_url, photo_media_id')
+        .eq('id', suspectId)
+        .single();
+
+      if (suspectError) {
+        console.error('Suspect lookup error:', suspectError);
+        return new Response(
+          JSON.stringify({
+            success: true,
+            signedUrl: null,
+            message: 'Suspect has no photo'
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      // If suspect has a public URL (starts with http), return it directly
+      if (suspectData?.photo_url?.startsWith('http')) {
+        console.log('Returning public URL for suspect');
+        return new Response(
+          JSON.stringify({
+            success: true,
+            signedUrl: suspectData.photo_url,
+            expiresIn: null,
+            isPublic: true
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
+      // If suspect has photo_media_id, look up that media record
+      if (suspectData?.photo_media_id) {
+        const { data: mediaData, error: mediaError } = await supabase
+          .from('media')
+          .select('url')
+          .eq('id', suspectData.photo_media_id)
+          .single();
+
+        if (!mediaError && mediaData) {
+          targetFilePath = mediaData.url;
+        }
+      } else if (suspectData?.photo_url) {
+        // Use photo_url as storage path
+        targetFilePath = suspectData.photo_url;
+      } else {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            signedUrl: null,
+            message: 'Suspect has no photo'
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    }
 
     // If mediaId is provided, look up the file path from the media table
     if (mediaId) {
@@ -51,13 +117,12 @@ serve(async (req) => {
       }
 
       targetFilePath = mediaData.url;
-      caseIdForAuth = mediaData.case_id;
 
       // Verify user has access to this case
       const { data: caseData, error: caseError } = await supabase
         .from('cases')
         .select('created_by')
-        .eq('id', caseIdForAuth)
+        .eq('id', mediaData.case_id)
         .single();
 
       if (caseError || !caseData) {
@@ -83,6 +148,22 @@ serve(async (req) => {
 
     if (!targetFilePath) {
       throw new Error('No file path provided');
+    }
+
+    // Check if it's already a public URL
+    if (targetFilePath.startsWith('http')) {
+      console.log('Returning existing public URL');
+      return new Response(
+        JSON.stringify({
+          success: true,
+          signedUrl: targetFilePath,
+          expiresIn: null,
+          isPublic: true
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     // Generate signed URL valid for 2 minutes (120 seconds)

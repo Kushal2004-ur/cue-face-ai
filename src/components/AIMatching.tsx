@@ -17,7 +17,8 @@ interface AIMatchingProps {
 interface SketchMatch {
   suspect_id: string;
   suspect_name: string;
-  suspect_photo_url: string;
+  suspect_photo_url: string | null;
+  suspect_photo_media_id: string | null;
   similarity_score: number;
 }
 
@@ -320,7 +321,8 @@ const AIMatching = ({ caseId }: AIMatchingProps) => {
           sketchUrl={comparisonMatch.sketchUrl}
           sketchId={comparisonMatch.sketchId}
           sketchDate={comparisonMatch.sketchDate}
-          suspectPhotoUrl={comparisonMatch.match.suspect_photo_url}
+          suspectPhotoUrl={comparisonMatch.match.suspect_photo_url || undefined}
+          suspectPhotoMediaId={comparisonMatch.match.suspect_photo_media_id || undefined}
           suspectId={comparisonMatch.match.suspect_id}
           suspectName={comparisonMatch.match.suspect_name}
           similarityScore={comparisonMatch.match.similarity_score}
