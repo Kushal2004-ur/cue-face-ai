@@ -376,28 +376,36 @@ export const ComparisonModal = ({
 
               <div className="relative max-w-4xl mx-auto aspect-[4/3] bg-muted rounded-lg overflow-hidden">
                 <TransformWrapper>
-                  <TransformComponent wrapperClass="w-full h-full" contentClass="w-full h-full">
-                    <div className="relative w-full h-full">
-                      {signedSuspectUrl ? (
-                        <img
-                          src={signedSuspectUrl}
-                          alt={suspectName}
-                          className="absolute inset-0 w-full h-full object-contain"
-                        />
-                      ) : (
-                        <ImagePlaceholder label="No suspect photo" />
-                      )}
-                      {signedSketchUrl && (
-                        <img
-                          src={signedSketchUrl}
-                          alt="Generated Sketch"
-                          className="absolute inset-0 w-full h-full object-contain"
-                          style={{ opacity: overlayOpacity[0] / 100 }}
-                        />
-                      )}
-                    </div>
+                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
+                    {/* Base layer: Suspect photo */}
+                    {signedSuspectUrl ? (
+                      <img
+                        src={signedSuspectUrl}
+                        alt={suspectName}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground">
+                        <ImageOff className="h-12 w-12 mb-2" />
+                        <p className="text-sm">No suspect photo</p>
+                      </div>
+                    )}
                   </TransformComponent>
                 </TransformWrapper>
+                
+                {/* Overlay layer: Sketch with opacity */}
+                {signedSketchUrl && (
+                  <div 
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ opacity: overlayOpacity[0] / 100 }}
+                  >
+                    <img
+                      src={signedSketchUrl}
+                      alt="Generated Sketch"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           ) : (
