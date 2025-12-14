@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Slider } from '@/components/ui/slider';
 import { 
   Download, 
   ZoomIn, 
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ComparisonCanvas } from './ComparisonCanvas';
 
 interface ComparisonModalProps {
   isOpen: boolean;
@@ -52,8 +52,8 @@ export const ComparisonModal = ({
   caseId,
 }: ComparisonModalProps) => {
   const [overlayMode, setOverlayMode] = useState(false);
-  const [overlayOpacity, setOverlayOpacity] = useState([50]);
-  const [swipePosition, setSwipePosition] = useState([50]);
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [swipePosition, setSwipePosition] = useState(50);
   const [isLinking, setIsLinking] = useState(false);
   const [isMarking, setIsMarking] = useState(false);
   const { toast } = useToast();
@@ -82,8 +82,8 @@ export const ComparisonModal = ({
         const promises: Promise<void>[] = [];
 
         // Fetch sketch signed URL
-        const isSketchSigned = sketchUrl?.startsWith('http');
-        if (!isSketchSigned && sketchUrl) {
+        const isSketchPublic = sketchUrl?.startsWith('http');
+        if (!isSketchPublic && sketchUrl) {
           promises.push(
             (async () => {
               console.log('Fetching signed URL for sketch:', sketchId, sketchUrl);
@@ -97,19 +97,20 @@ export const ComparisonModal = ({
               }
 
               if (data?.signedUrl) {
-                console.log('Got signed sketch URL');
+                console.log('Got signed sketch URL, source:', data.source);
                 setSignedSketchUrl(data.signedUrl);
               } else {
+                console.warn('No signed URL returned for sketch:', data?.message);
                 throw new Error('No signed URL returned for sketch');
               }
             })()
           );
-        } else if (isSketchSigned) {
+        } else if (isSketchPublic) {
           setSignedSketchUrl(sketchUrl);
         }
 
-        // Fetch suspect photo signed URL using suspectId
-        // This calls the edge function which looks up the suspect's photo_url or photo_media_id
+        // Fetch suspect photo signed URL using suspectId only
+        // Edge function will look up photo_media_id → media.url or photo_url
         promises.push(
           (async () => {
             console.log('Fetching signed URL for suspect:', suspectId);
@@ -124,10 +125,11 @@ export const ComparisonModal = ({
             }
 
             if (data?.signedUrl) {
-              console.log('Got signed suspect URL:', data.isPublic ? '(public)' : '(signed)');
+              console.log('Got signed suspect URL, source:', data.source, 'isPublic:', data.isPublic);
               setSignedSuspectUrl(data.signedUrl);
             } else {
               console.log('Suspect has no photo:', data?.message);
+              // signedSuspectUrl remains null - placeholder will show
             }
           })()
         );
@@ -172,6 +174,7 @@ export const ComparisonModal = ({
 
     try {
       const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch image');
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -187,6 +190,7 @@ export const ComparisonModal = ({
         description: `Downloading ${filename}`,
       });
     } catch (error) {
+      console.error('Download error:', error);
       toast({
         title: "Download Failed",
         description: "Failed to download image",
@@ -333,7 +337,7 @@ export const ComparisonModal = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleDownload(signedSuspectUrl, `suspect_${suspectName}.png`)}
+              onClick={() => handleDownload(signedSuspectUrl, `suspect_${suspectName.replace(/\s+/g, '_')}.png`)}
               disabled={!signedSuspectUrl || isLoadingUrls}
             >
               <Download className="h-4 w-4 mr-2" />
@@ -359,71 +363,21 @@ export const ComparisonModal = ({
           )}
 
           {overlayMode ? (
-            /* Overlay Mode with Opacity Control */
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 max-w-md mx-auto">
-                <span className="text-sm font-medium whitespace-nowrap">Opacity:</span>
-                <Slider
-                  value={overlayOpacity}
-                  onValueChange={setOverlayOpacity}
-                  max={100}
-                  min={0}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground w-12">{overlayOpacity[0]}%</span>
-              </div>
-
-              <div className="relative max-w-4xl mx-auto aspect-[4/3] bg-muted rounded-lg overflow-hidden">
-                <TransformWrapper>
-                  <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full">
-                    {/* Base layer: Suspect photo */}
-                    {signedSuspectUrl ? (
-                      <img
-                        src={signedSuspectUrl}
-                        alt={suspectName}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-muted/50 text-muted-foreground">
-                        <ImageOff className="h-12 w-12 mb-2" />
-                        <p className="text-sm">No suspect photo</p>
-                      </div>
-                    )}
-                  </TransformComponent>
-                </TransformWrapper>
-                
-                {/* Overlay layer: Sketch with opacity */}
-                {signedSketchUrl && (
-                  <div 
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ opacity: overlayOpacity[0] / 100 }}
-                  >
-                    <img
-                      src={signedSketchUrl}
-                      alt="Generated Sketch"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
+            /* Canvas-based Overlay Mode */
+            <ComparisonCanvas
+              sketchUrl={signedSketchUrl}
+              suspectUrl={signedSuspectUrl}
+              mode="overlay"
+              overlayOpacity={overlayOpacity}
+              swipePosition={swipePosition}
+              onOverlayOpacityChange={setOverlayOpacity}
+              onSwipePositionChange={setSwipePosition}
+              suspectName={suspectName}
+            />
           ) : (
-            /* Side-by-Side Mode with Swipe Diff */
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 max-w-md mx-auto">
-                <span className="text-sm font-medium whitespace-nowrap">Swipe:</span>
-                <Slider
-                  value={swipePosition}
-                  onValueChange={setSwipePosition}
-                  max={100}
-                  min={0}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="text-sm text-muted-foreground w-12">{swipePosition[0]}%</span>
-              </div>
-
+            /* Side-by-Side Mode with Canvas Swipe Diff */
+            <div className="space-y-6">
+              {/* Side by side images */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Sketch Side */}
                 <div className="space-y-3">
@@ -506,37 +460,19 @@ export const ComparisonModal = ({
                 </div>
               </div>
 
-              {/* Swipe Diff Visualization */}
-              <div className="max-w-4xl mx-auto">
-                <div className="relative aspect-[4/3] bg-muted rounded-lg overflow-hidden">
-                  <div className="relative w-full h-full">
-                    {signedSuspectUrl ? (
-                      <img
-                        src={signedSuspectUrl}
-                        alt={suspectName}
-                        className="absolute inset-0 w-full h-full object-contain"
-                      />
-                    ) : (
-                      <ImagePlaceholder label="No suspect photo" />
-                    )}
-                    {signedSketchUrl && (
-                      <div
-                        className="absolute inset-0 overflow-hidden"
-                        style={{ clipPath: `inset(0 ${100 - swipePosition[0]}% 0 0)` }}
-                      >
-                        <img
-                          src={signedSketchUrl}
-                          alt="Generated Sketch"
-                          className="absolute inset-0 w-full h-full object-contain"
-                        />
-                      </div>
-                    )}
-                    <div
-                      className="absolute top-0 bottom-0 w-0.5 bg-primary shadow-lg"
-                      style={{ left: `${swipePosition[0]}%` }}
-                    />
-                  </div>
-                </div>
+              {/* Canvas-based Swipe Diff */}
+              <div className="pt-4 border-t">
+                <h4 className="text-center font-medium mb-4">Swipe Comparison</h4>
+                <ComparisonCanvas
+                  sketchUrl={signedSketchUrl}
+                  suspectUrl={signedSuspectUrl}
+                  mode="swipe"
+                  overlayOpacity={overlayOpacity}
+                  swipePosition={swipePosition}
+                  onOverlayOpacityChange={setOverlayOpacity}
+                  onSwipePositionChange={setSwipePosition}
+                  suspectName={suspectName}
+                />
               </div>
             </div>
           )}
