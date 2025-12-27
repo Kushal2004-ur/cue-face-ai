@@ -22,10 +22,71 @@ serve(async (req) => {
 
     console.log('Finding suspect matches for case:', caseId, 'sketch:', sketchId);
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role for DB operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // ====== AUTHENTICATION & AUTHORIZATION ======
+    // Get and verify the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ success: false, error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('User authentication failed:', userError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authenticated user:', user.id);
+
+    // Verify user has access to this case
+    const { data: caseData, error: caseError } = await supabase
+      .from('cases')
+      .select('created_by, title')
+      .eq('id', caseId)
+      .single();
+
+    if (caseError || !caseData) {
+      console.error('Case not found:', caseId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Case not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user owns case or is analyst/admin
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    const isAuthorized = caseData.created_by === user.id || 
+                        userData?.role === 'admin' || 
+                        userData?.role === 'analyst';
+
+    if (!isAuthorized) {
+      console.error('Access denied for user:', user.id, 'to case:', caseId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Access denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Authorization verified for user:', user.id, 'role:', userData?.role);
+    // ====== END AUTHENTICATION & AUTHORIZATION ======
 
     // Get the sketch embedding
     const { data: sketchData, error: sketchError } = await supabase
@@ -90,15 +151,7 @@ serve(async (req) => {
         console.log(`Saved ${matchRecords.length} high-confidence matches`);
       }
 
-      // Get case details for alert
-      const { data: caseData } = await supabase
-        .from('cases')
-        .select('title')
-        .eq('id', caseId)
-        .single();
-
-      // Send Telegram alerts for high-confidence matches using POST with service role key
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      // Send Telegram alerts for high-confidence matches
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       
       for (const match of highConfidenceMatches) {
@@ -119,9 +172,9 @@ serve(async (req) => {
           
           if (!alertResponse.ok) {
             const errorText = await alertResponse.text();
-            console.error(`Telegram alert failed for suspect ${match.suspect_name}:`, errorText);
+            console.error(`Telegram alert failed for suspect:`, errorText);
           } else {
-            console.log(`Telegram alert sent successfully for suspect: ${match.suspect_name}`);
+            console.log(`Telegram alert sent successfully`);
           }
         } catch (alertError) {
           console.error('Error sending Telegram alert:', alertError);
