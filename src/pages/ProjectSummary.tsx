@@ -25,440 +25,755 @@ const ProjectSummary = () => {
 
       {/* PDF Content */}
       <div className="max-w-4xl mx-auto p-8 print:p-6 text-black bg-white leading-relaxed">
-        {/* Title Page */}
+        {/* Title Page with Team */}
         <div className="text-center border-b-2 border-black pb-6 mb-8">
           <h1 className="text-4xl font-bold mb-3">Forensic Face AI System</h1>
           <p className="text-xl text-gray-600 mb-2">AI-Powered Suspect Identification Platform</p>
-          <p className="text-sm text-gray-500">Presentation Script & Technical Documentation</p>
+          <p className="text-sm text-gray-500 mb-6">Technical Documentation & Presentation Guide</p>
+          
+          {/* Team Members */}
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg mt-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">👥 Project Team</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="font-bold text-blue-800">Team Member 1</p>
+                <p className="text-gray-600">Project Lead</p>
+                <p className="text-xs text-gray-400">Frontend & Architecture</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="font-bold text-green-800">Team Member 2</p>
+                <p className="text-gray-600">Backend Developer</p>
+                <p className="text-xs text-gray-400">Supabase & APIs</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="font-bold text-purple-800">Team Member 3</p>
+                <p className="text-gray-600">AI/ML Engineer</p>
+                <p className="text-xs text-gray-400">Gemini Integration</p>
+              </div>
+              <div className="bg-white p-3 rounded-lg shadow-sm">
+                <p className="font-bold text-orange-800">Team Member 4</p>
+                <p className="text-gray-600">UI/UX Designer</p>
+                <p className="text-xs text-gray-400">Design & Testing</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-4">Guide: Prof. [Mentor Name] | Department of Computer Science</p>
+          </div>
         </div>
 
-        {/* Script Sections */}
+        {/* Diagrams Section */}
         <div className="space-y-8 text-[15px]">
           
-          {/* Section 1: Introduction */}
-          <section>
+          {/* System Architecture Diagram */}
+          <section className="page-break-before">
             <h2 className="text-2xl font-bold text-blue-800 border-l-4 border-blue-800 pl-4 mb-4">
-              1. Introduction (2 minutes)
+              📐 System Architecture Diagram
             </h2>
-            <div className="bg-blue-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-blue-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Good morning/afternoon. Today we are presenting the Forensic Face AI System - an intelligent 
-                platform designed to revolutionize how law enforcement agencies identify criminal suspects. 
-                Our system combines artificial intelligence with forensic science to generate suspect sketches 
-                from eyewitness descriptions and automatically match them against criminal databases."
-              </p>
-            </div>
-            <div className="pl-4">
-              <p className="font-semibold mb-2">Key Points to Cover:</p>
-              <ul className="list-disc pl-6 space-y-1 text-gray-700">
-                <li>Project name: Forensic Face AI System</li>
-                <li>Purpose: Automate forensic sketch generation and suspect identification</li>
-                <li>Target users: Law enforcement agencies, forensic departments</li>
-                <li>Core innovation: AI-powered sketch generation from text descriptions</li>
-              </ul>
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-600 italic">Three-Tier Architecture with AI Integration</p>
+              </div>
+              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
+                <pre className="whitespace-pre">
+{`┌─────────────────────────────────────────────────────────────────────────┐
+│                           PRESENTATION LAYER                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │                         React 18 + TypeScript                        │ │
+│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐            │ │
+│  │  │ Dashboard │ │   Cases   │ │  Suspects │ │  Matches  │            │ │
+│  │  └───────────┘ └───────────┘ └───────────┘ └───────────┘            │ │
+│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐            │ │
+│  │  │  Sketch   │ │ Comparison│ │   Admin   │ │   Auth    │            │ │
+│  │  │ Generator │ │   Modal   │ │ Dashboard │ │   Pages   │            │ │
+│  │  └───────────┘ └───────────┘ └───────────┘ └───────────┘            │ │
+│  │                    Tailwind CSS + shadcn/ui                          │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           APPLICATION LAYER                              │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │                    Supabase Edge Functions (Deno)                   │  │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
+│  │  │ generate-sketch │  │generate-sketch- │  │find-suspect-    │     │  │
+│  │  │                 │  │   embedding     │  │   matches       │     │  │
+│  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘     │  │
+│  │           │                    │                    │               │  │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
+│  │  │refine-          │  │generate-        │  │send-telegram-   │     │  │
+│  │  │description      │  │clarifying-qs    │  │   alert         │     │  │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              ▼                     ▼                     ▼
+┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
+│     DATA LAYER      │  │     AI/ML LAYER     │  │  EXTERNAL SERVICES  │
+│  ┌───────────────┐  │  │  ┌───────────────┐  │  │  ┌───────────────┐  │
+│  │  PostgreSQL   │  │  │  │ Google Gemini │  │  │  │   Telegram    │  │
+│  │   Database    │  │  │  │     API       │  │  │  │   Bot API     │  │
+│  │ ┌───────────┐ │  │  │  ├───────────────┤  │  │  └───────────────┘  │
+│  │ │  pgvector │ │  │  │  │  Imagen 3.0   │  │  │                     │
+│  │ │ extension │ │  │  │  │ (Sketches)    │  │  │                     │
+│  │ └───────────┘ │  │  │  ├───────────────┤  │  │                     │
+│  └───────────────┘  │  │  │text-embedding │  │  │                     │
+│  ┌───────────────┐  │  │  │    -004       │  │  │                     │
+│  │   Supabase    │  │  │  │ (Embeddings)  │  │  │                     │
+│  │    Storage    │  │  │  └───────────────┘  │  │                     │
+│  │ (case-evidence)│  │  │                     │  │                     │
+│  └───────────────┘  │  │                     │  │                     │
+└─────────────────────┘  └─────────────────────┘  └─────────────────────┘`}
+                </pre>
+              </div>
             </div>
           </section>
 
-          {/* Section 2: Problem Statement */}
-          <section>
-            <h2 className="text-2xl font-bold text-red-800 border-l-4 border-red-800 pl-4 mb-4">
-              2. Problem Statement (2 minutes)
-            </h2>
-            <div className="bg-red-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-red-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Traditional forensic sketch creation faces several challenges. First, it requires highly 
-                skilled forensic artists who are expensive and scarce. Second, the process is time-consuming - 
-                a single sketch can take 2-4 hours. Third, eyewitness descriptions are often vague or ambiguous, 
-                leading to inaccurate sketches. Finally, manually comparing sketches against suspect databases 
-                with thousands of records is nearly impossible. Our system addresses all these challenges."
-              </p>
-            </div>
-            <div className="pl-4">
-              <p className="font-semibold mb-2">Problems We Solve:</p>
-              <ul className="list-disc pl-6 space-y-1 text-gray-700">
-                <li><strong>Skill dependency:</strong> No need for trained forensic artists</li>
-                <li><strong>Time consumption:</strong> Generate sketches in seconds, not hours</li>
-                <li><strong>Ambiguous descriptions:</strong> AI asks clarifying questions to refine details</li>
-                <li><strong>Manual matching:</strong> Automated database matching with confidence scores</li>
-                <li><strong>Scalability:</strong> Can process multiple cases simultaneously</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Section 3: Solution & Features */}
-          <section>
+          {/* Methodology Block Diagram */}
+          <section className="page-break-before">
             <h2 className="text-2xl font-bold text-green-800 border-l-4 border-green-800 pl-4 mb-4">
-              3. Our Solution & Key Features (5 minutes)
+              🔄 Methodology Block Diagram
             </h2>
-            <div className="bg-green-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-green-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Our solution is a comprehensive web-based platform with several integrated modules. 
-                Let me walk you through each feature."
-              </p>
-            </div>
-
-            <div className="space-y-4 pl-4">
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 1: AI Sketch Generation</h3>
-                <p className="text-gray-700 mb-2">
-                  Users enter a text description of the suspect. Our system uses Google Gemini API with 
-                  Imagen 3.0 model to generate a realistic forensic sketch. The AI understands facial 
-                  features, expressions, and physical characteristics.
-                </p>
-                <p className="text-sm bg-yellow-100 p-2 rounded">
-                  💡 <strong>Demo point:</strong> Show the sketch generation from "Male, approximately 30 years old, 
-                  oval face, thick eyebrows, short black hair"
-                </p>
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-600 italic">Complete System Workflow Process</p>
               </div>
+              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
+                <pre className="whitespace-pre">
+{`┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              FORENSIC FACE AI METHODOLOGY                        │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 2: Intelligent Chatbot Clarification</h3>
-                <p className="text-gray-700 mb-2">
-                  When eyewitnesses use vague terms like "average build" or "normal height", our chatbot 
-                  automatically detects these ambiguous terms and asks follow-up questions to get precise 
-                  details. This significantly improves sketch accuracy.
-                </p>
-                <p className="text-sm bg-yellow-100 p-2 rounded">
-                  💡 <strong>Demo point:</strong> Show how the system asks "What do you mean by average build? 
-                  Is the person slim, athletic, or heavy-set?"
-                </p>
-              </div>
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │   PHASE 1    │     │   PHASE 2    │     │   PHASE 3    │     │   PHASE 4    │
+  │    INPUT     │────▶│  PROCESSING  │────▶│   MATCHING   │────▶│   OUTPUT     │
+  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+         │                    │                    │                    │
+         ▼                    ▼                    ▼                    ▼
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │ Eyewitness   │     │  Ambiguity   │     │  Generate    │     │  Match       │
+  │ Description  │     │  Detection   │     │  Embeddings  │     │  Results     │
+  │              │     │  & Chatbot   │     │  (768-dim)   │     │              │
+  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+         │                    │                    │                    │
+         ▼                    ▼                    ▼                    ▼
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │ Case         │     │  Description │     │  Cosine      │     │  Telegram    │
+  │ Creation     │     │  Refinement  │     │  Similarity  │     │  Alerts      │
+  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+         │                    │                    │                    │
+         ▼                    ▼                    ▼                    ▼
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │ Evidence     │     │  AI Sketch   │     │  Database    │     │  Visual      │
+  │ Upload       │     │  Generation  │     │  Search      │     │  Comparison  │
+  │              │     │  (Imagen 3)  │     │  (pgvector)  │     │  Tools       │
+  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
 
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 3: Face Matching Pipeline</h3>
-                <p className="text-gray-700 mb-2">
-                  Generated sketches are converted into mathematical vectors called face embeddings using 
-                  Google Text-embedding-004 model. These embeddings are compared against all suspects in 
-                  the database using cosine similarity. We use pgvector extension in PostgreSQL for 
-                  efficient similarity search.
-                </p>
-                <p className="text-sm bg-yellow-100 p-2 rounded">
-                  💡 <strong>Technical note:</strong> Embeddings are 768-dimensional vectors. 
-                  Similarity above 70% is considered high confidence.
-                </p>
-              </div>
-
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 4: Comparison Tools</h3>
-                <p className="text-gray-700 mb-2">
-                  Officers can compare sketches with suspect photos side-by-side. Features include 
-                  zoom/pan controls, overlay mode with opacity adjustment, and swipe-diff visualization 
-                  for detailed analysis.
-                </p>
-              </div>
-
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 5: Case Management</h3>
-                <p className="text-gray-700 mb-2">
-                  Complete case lifecycle management - create cases, upload evidence, link suspects, 
-                  track investigation status, and generate reports.
-                </p>
-              </div>
-
-              <div className="border-l-2 border-green-300 pl-4">
-                <h3 className="font-bold text-lg">Feature 6: Real-time Alerts</h3>
-                <p className="text-gray-700 mb-2">
-                  When a high-confidence match is found (above 70%), the system automatically sends 
-                  Telegram notifications to assigned officers with suspect details.
-                </p>
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                            CONTINUOUS FEEDBACK LOOP                          │
+  │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐   │
+  │  │   Officer   │───▶│   Review    │───▶│   Mark as   │───▶│   Audit     │   │
+  │  │   Review    │    │   Matches   │    │  True/False │    │   Logging   │   │
+  │  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘   │
+  └─────────────────────────────────────────────────────────────────────────────┘`}
+                </pre>
               </div>
             </div>
           </section>
 
-          {/* Section 4: Technical Architecture */}
+          {/* Data Flow Diagram */}
           <section className="page-break-before">
             <h2 className="text-2xl font-bold text-purple-800 border-l-4 border-purple-800 pl-4 mb-4">
-              4. Technical Architecture (3 minutes)
+              📊 Data Flow Diagram (DFD)
             </h2>
-            <div className="bg-purple-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-purple-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Our system follows a modern three-tier architecture with a React frontend, 
-                Supabase backend, and AI services integration."
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="border rounded-lg p-4">
-                <h3 className="font-bold text-purple-700 mb-2">Frontend Layer</h3>
-                <ul className="text-sm space-y-1 text-gray-700">
-                  <li>• <strong>React 18</strong> - UI library</li>
-                  <li>• <strong>TypeScript</strong> - Type safety</li>
-                  <li>• <strong>Tailwind CSS</strong> - Styling</li>
-                  <li>• <strong>React Query</strong> - Data fetching</li>
-                  <li>• <strong>React Router</strong> - Navigation</li>
-                </ul>
+            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-600 italic">Level 1 Data Flow Diagram</p>
               </div>
-              <div className="border rounded-lg p-4">
-                <h3 className="font-bold text-purple-700 mb-2">Backend Layer</h3>
-                <ul className="text-sm space-y-1 text-gray-700">
-                  <li>• <strong>Supabase</strong> - Backend as a Service</li>
-                  <li>• <strong>PostgreSQL</strong> - Database</li>
-                  <li>• <strong>pgvector</strong> - Vector similarity</li>
-                  <li>• <strong>Edge Functions</strong> - Serverless APIs</li>
-                  <li>• <strong>Row Level Security</strong> - Data protection</li>
-                </ul>
+              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
+                <pre className="whitespace-pre">
+{`                              ┌────────────────────┐
+                              │    EXTERNAL USER   │
+                              │   (Law Enforcement)│
+                              └─────────┬──────────┘
+                                        │
+           ┌────────────────────────────┼────────────────────────────┐
+           │                            │                            │
+           ▼                            ▼                            ▼
+  ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
+  │   1.0 USER      │        │   2.0 CASE      │        │   3.0 SUSPECT   │
+  │ AUTHENTICATION  │        │  MANAGEMENT     │        │  MANAGEMENT     │
+  │                 │        │                 │        │                 │
+  │ • Login/Logout  │        │ • Create Case   │        │ • Add Suspect   │
+  │ • Role Check    │        │ • View Cases    │        │ • Upload Photo  │
+  │ • Session Mgmt  │        │ • Update Status │        │ • Edit Details  │
+  └────────┬────────┘        └────────┬────────┘        └────────┬────────┘
+           │                          │                          │
+           │                          ▼                          │
+           │               ┌─────────────────┐                   │
+           │               │   4.0 SKETCH    │                   │
+           │               │   GENERATION    │                   │
+           │               │                 │                   │
+           │               │ • Text Input    │                   │
+           │               │ • Clarification │                   │
+           │               │ • AI Generation │                   │
+           │               └────────┬────────┘                   │
+           │                        │                            │
+           │                        ▼                            │
+           │               ┌─────────────────┐                   │
+           │               │   5.0 FACE      │◄──────────────────┘
+           │               │   MATCHING      │
+           │               │                 │
+           │               │ • Embedding Gen │
+           │               │ • Vector Search │
+           │               │ • Score Calc    │
+           │               └────────┬────────┘
+           │                        │
+           │                        ▼
+           │               ┌─────────────────┐
+           │               │   6.0 ALERT     │
+           │               │   NOTIFICATION  │
+           │               │                 │
+           │               │ • Telegram Bot  │
+           │               │ • Email (future)│
+           │               └────────┬────────┘
+           │                        │
+           └───────────────┬────────┴────────┬───────────────────┘
+                           │                 │
+                           ▼                 ▼
+                  ┌─────────────────┐  ┌─────────────────┐
+                  │   DATA STORES   │  │  EXTERNAL APIs  │
+                  │                 │  │                 │
+                  │ D1: users       │  │ Google Gemini   │
+                  │ D2: cases       │  │ Telegram Bot    │
+                  │ D3: suspects    │  │                 │
+                  │ D4: media       │  │                 │
+                  │ D5: matches     │  │                 │
+                  │ D6: audit_logs  │  │                 │
+                  └─────────────────┘  └─────────────────┘`}
+                </pre>
               </div>
-            </div>
-
-            <div className="border rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-purple-700 mb-2">AI/ML Layer</h3>
-              <ul className="text-sm space-y-1 text-gray-700">
-                <li>• <strong>Google Gemini API</strong> - Main AI provider</li>
-                <li>• <strong>Imagen 3.0</strong> - Image generation for sketches</li>
-                <li>• <strong>Text-embedding-004</strong> - Face embedding generation</li>
-                <li>• <strong>Cosine Similarity</strong> - Matching algorithm</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-100 p-4 rounded-lg font-mono text-xs">
-              <p className="font-bold mb-2">System Flow:</p>
-              <pre className="whitespace-pre-wrap">
-{`User Input (Description)
-    ↓
-Chatbot Clarification (if needed)
-    ↓
-Edge Function: generate-sketch
-    ↓
-Google Imagen 3.0 → Sketch Image
-    ↓
-Edge Function: generate-sketch-embedding
-    ↓
-Text-embedding-004 → 768-dim Vector
-    ↓
-PostgreSQL pgvector → Similarity Search
-    ↓
-Edge Function: find-suspect-matches
-    ↓
-Results + Telegram Alerts (if high confidence)`}
-              </pre>
             </div>
           </section>
 
-          {/* Section 5: Database Design */}
-          <section>
+          {/* Backend (Supabase) Detailed Information */}
+          <section className="page-break-before">
             <h2 className="text-2xl font-bold text-orange-800 border-l-4 border-orange-800 pl-4 mb-4">
-              5. Database Design (2 minutes)
+              🗄️ Backend Architecture (Supabase)
             </h2>
-            <div className="bg-orange-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-orange-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "We use PostgreSQL with several interconnected tables. Let me explain the core schema."
-              </p>
-            </div>
+            
+            <div className="space-y-6">
+              {/* Overview */}
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <h3 className="font-bold text-orange-900 mb-2">Overview</h3>
+                <p className="text-gray-700 text-sm">
+                  Supabase serves as our Backend-as-a-Service (BaaS), providing authentication, database, 
+                  real-time subscriptions, storage, and serverless edge functions - eliminating the need 
+                  for traditional server infrastructure.
+                </p>
+              </div>
 
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">users</h4>
-                <p className="text-gray-600">id, email, name, role, created_at</p>
-                <p className="text-xs text-gray-500 mt-1">Stores user accounts with roles (admin/analyst/officer)</p>
+              {/* PostgreSQL Database */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-orange-700 mb-3">1. PostgreSQL Database</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-semibold mb-2">Core Tables:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li><strong>users:</strong> Stores user profiles with roles (admin/analyst/officer)</li>
+                      <li><strong>cases:</strong> Investigation cases with status tracking</li>
+                      <li><strong>suspects:</strong> Suspect records with photo embeddings</li>
+                      <li><strong>media:</strong> Evidence files and generated sketches</li>
+                      <li><strong>matches:</strong> AI-generated match results with confidence scores</li>
+                      <li><strong>audit_logs:</strong> Complete activity trail for compliance</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Special Features:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li><strong>pgvector extension:</strong> Native vector similarity search</li>
+                      <li><strong>768-dimension vectors:</strong> Face embeddings storage</li>
+                      <li><strong>Cosine similarity:</strong> Built-in distance functions</li>
+                      <li><strong>Indexed search:</strong> Fast nearest-neighbor queries</li>
+                      <li><strong>Database triggers:</strong> Auto-generate audit logs</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">cases</h4>
-                <p className="text-gray-600">id, title, description, status, created_by</p>
-                <p className="text-xs text-gray-500 mt-1">Investigation cases linked to creators</p>
+
+              {/* Edge Functions */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-orange-700 mb-3">2. Edge Functions (Deno Runtime)</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">generate-sketch</p>
+                    <p className="text-gray-600">Calls Google Imagen 3.0 API to generate forensic sketches from text descriptions. Returns base64-encoded PNG images.</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">generate-sketch-embedding</p>
+                    <p className="text-gray-600">Converts sketch descriptions into 768-dimensional vectors using text-embedding-004 model for similarity matching.</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">find-suspect-matches</p>
+                    <p className="text-gray-600">Performs vector similarity search against suspect database using cosine distance. Returns ranked matches above threshold.</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">generate-clarifying-questions</p>
+                    <p className="text-gray-600">Detects ambiguous terms in descriptions and generates targeted follow-up questions using Gemini Pro.</p>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="font-semibold">send-telegram-alert</p>
+                    <p className="text-gray-600">Sends real-time notifications to configured Telegram channels when high-confidence matches are found.</p>
+                  </div>
+                </div>
               </div>
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">suspects</h4>
-                <p className="text-gray-600">id, name, photo_url, photo_embedding, notes</p>
-                <p className="text-xs text-gray-500 mt-1">Suspect profiles with face embeddings</p>
+
+              {/* Storage */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-orange-700 mb-3">3. Supabase Storage</h3>
+                <div className="text-sm text-gray-700">
+                  <p className="mb-2"><strong>Bucket:</strong> case-evidence (private)</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>Stores uploaded evidence photos, suspect images, and generated sketches</li>
+                    <li>Secured with RLS policies - only authorized users can access</li>
+                    <li>Generates signed URLs with expiration for temporary access</li>
+                    <li>Supports images up to 50MB with automatic optimization</li>
+                  </ul>
+                </div>
               </div>
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">media</h4>
-                <p className="text-gray-600">id, case_id, url, type, embedding, meta</p>
-                <p className="text-xs text-gray-500 mt-1">Evidence files and generated sketches</p>
-              </div>
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">matches</h4>
-                <p className="text-gray-600">id, case_id, suspect_id, score, status, evidence</p>
-                <p className="text-xs text-gray-500 mt-1">AI-generated match results with confidence</p>
-              </div>
-              <div className="border rounded p-3">
-                <h4 className="font-bold text-orange-700">audit_logs</h4>
-                <p className="text-gray-600">id, actor_id, action, target_type, payload</p>
-                <p className="text-xs text-gray-500 mt-1">Tracks all user actions for accountability</p>
+
+              {/* Authentication */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-orange-700 mb-3">4. Authentication System</h3>
+                <div className="text-sm text-gray-700">
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Email/Password:</strong> Standard authentication with email verification</li>
+                    <li><strong>JWT Tokens:</strong> Secure, stateless authentication for API calls</li>
+                    <li><strong>Session Management:</strong> Automatic token refresh with secure storage</li>
+                    <li><strong>Role Mapping:</strong> Users linked to roles via database trigger on signup</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* Section 6: Security */}
-          <section>
-            <h2 className="text-2xl font-bold text-red-700 border-l-4 border-red-700 pl-4 mb-4">
-              6. Security Implementation (2 minutes)
+          {/* AI/ML Layer Detailed Information */}
+          <section className="page-break-before">
+            <h2 className="text-2xl font-bold text-purple-800 border-l-4 border-purple-800 pl-4 mb-4">
+              🤖 AI/ML Architecture Layer
             </h2>
-            <div className="bg-red-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-red-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Security is critical for a forensic system handling sensitive criminal data. 
-                We have implemented multiple layers of protection."
-              </p>
-            </div>
+            
+            <div className="space-y-6">
+              {/* Overview */}
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h3 className="font-bold text-purple-900 mb-2">AI Integration Overview</h3>
+                <p className="text-gray-700 text-sm">
+                  Our system leverages Google's Gemini family of AI models for multiple tasks: image generation, 
+                  text embedding, and natural language understanding. All AI calls are made through secure 
+                  edge functions with API key protection.
+                </p>
+              </div>
 
-            <div className="space-y-3 pl-4">
-              <div className="flex items-start gap-3">
-                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">1</span>
-                <div>
-                  <p className="font-semibold">Row Level Security (RLS)</p>
-                  <p className="text-gray-600 text-sm">Every database table has RLS policies. Users can only access data they are authorized to see.</p>
+              {/* Image Generation */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-purple-700 mb-3">1. Image Generation - Imagen 3.0</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-semibold mb-2">Capabilities:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>Photorealistic forensic sketch generation</li>
+                      <li>Understanding of facial feature descriptions</li>
+                      <li>Multiple art styles (sketch, portrait, realistic)</li>
+                      <li>High-resolution output (1024x1024 pixels)</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Prompt Engineering:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>Structured prompts for consistency</li>
+                      <li>Prefix: "Forensic sketch style portrait..."</li>
+                      <li>Explicit feature descriptions</li>
+                      <li>Safety filters for appropriate content</li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="mt-3 bg-gray-100 p-3 rounded text-xs font-mono">
+                  <p className="font-semibold mb-1">Sample API Call:</p>
+                  <code>POST /v1beta/models/imagen-3.0-generate-001:generateImages</code>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">2</span>
-                <div>
-                  <p className="font-semibold">JWT Authentication</p>
-                  <p className="text-gray-600 text-sm">All API endpoints require valid JWT tokens. Edge functions verify user identity before processing.</p>
+
+              {/* Text Embeddings */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-purple-700 mb-3">2. Text Embeddings - text-embedding-004</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-semibold mb-2">How It Works:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>Converts text descriptions to 768-dimensional vectors</li>
+                      <li>Captures semantic meaning of facial features</li>
+                      <li>Similar descriptions → similar vectors</li>
+                      <li>Enables mathematical comparison of faces</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Technical Specs:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li><strong>Model:</strong> text-embedding-004</li>
+                      <li><strong>Dimensions:</strong> 768 (configurable)</li>
+                      <li><strong>Task Type:</strong> SEMANTIC_SIMILARITY</li>
+                      <li><strong>Max Tokens:</strong> 2048</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">3</span>
-                <div>
-                  <p className="font-semibold">Role-Based Access Control</p>
-                  <p className="text-gray-600 text-sm">Three roles: Admin (full access), Analyst (case management), Officer (view only).</p>
+
+              {/* Similarity Matching */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-purple-700 mb-3">3. Vector Similarity Matching</h3>
+                <div className="text-sm">
+                  <p className="mb-3 text-gray-700">
+                    Using PostgreSQL's pgvector extension, we perform cosine similarity search to find matching suspects.
+                  </p>
+                  <div className="bg-gray-100 p-3 rounded font-mono text-xs mb-3">
+                    <p className="font-semibold mb-1">Cosine Similarity Formula:</p>
+                    <code>similarity = 1 - (vector1 &lt;=&gt; vector2)</code>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-green-100 p-2 rounded text-center">
+                      <p className="font-bold text-green-800">≥ 70%</p>
+                      <p className="text-xs text-green-600">High Confidence</p>
+                    </div>
+                    <div className="bg-yellow-100 p-2 rounded text-center">
+                      <p className="font-bold text-yellow-800">50-70%</p>
+                      <p className="text-xs text-yellow-600">Medium Confidence</p>
+                    </div>
+                    <div className="bg-red-100 p-2 rounded text-center">
+                      <p className="font-bold text-red-800">&lt; 50%</p>
+                      <p className="text-xs text-red-600">Low Confidence</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">4</span>
-                <div>
-                  <p className="font-semibold">Audit Logging</p>
-                  <p className="text-gray-600 text-sm">Every action is logged with user ID, timestamp, and action details for accountability.</p>
+
+              {/* Natural Language Processing */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-purple-700 mb-3">4. Natural Language Processing - Gemini Pro</h3>
+                <div className="text-sm text-gray-700">
+                  <p className="mb-2"><strong>Clarifying Questions System:</strong></p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Ambiguity Detection:</strong> Identifies vague terms like "average height", "normal build"</li>
+                    <li><strong>Question Generation:</strong> Creates context-aware follow-up questions</li>
+                    <li><strong>Description Refinement:</strong> Merges user responses into detailed descriptions</li>
+                    <li><strong>Iterative Improvement:</strong> Multiple rounds until description is precise</li>
+                  </ul>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-bold">5</span>
-                <div>
-                  <p className="font-semibold">Encrypted Storage</p>
-                  <p className="text-gray-600 text-sm">All media files stored in Supabase Storage with signed URLs for secure access.</p>
+
+              {/* ML Pipeline */}
+              <div className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-blue-50">
+                <h3 className="font-bold text-purple-700 mb-3">5. Complete ML Pipeline</h3>
+                <div className="font-mono text-xs bg-white p-3 rounded">
+                  <pre className="whitespace-pre-wrap">
+{`Input Description
+      │
+      ▼
+[Ambiguity Detection] ──Yes──▶ [Generate Questions] ─▶ [User Response]
+      │                                                       │
+      │No                                                     │
+      │◀──────────────────────────────────────────────────────┘
+      ▼
+[Description Refinement] ──▶ Final Description
+      │
+      ├──▶ [Imagen 3.0] ──▶ Forensic Sketch Image
+      │
+      └──▶ [text-embedding-004] ──▶ 768-dim Vector
+                                        │
+                                        ▼
+                              [pgvector Search]
+                                        │
+                                        ▼
+                              Ranked Match Results`}
+                  </pre>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Section 7: Demo Flow */}
-          <section>
-            <h2 className="text-2xl font-bold text-teal-800 border-l-4 border-teal-800 pl-4 mb-4">
-              7. Live Demo Flow (5 minutes)
+          {/* Security Implementation Detailed */}
+          <section className="page-break-before">
+            <h2 className="text-2xl font-bold text-red-800 border-l-4 border-red-800 pl-4 mb-4">
+              🔐 Security Implementation Details
             </h2>
-            <div className="bg-teal-50 p-4 rounded-lg mb-4">
-              <p className="font-semibold text-teal-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "Now let me demonstrate the complete workflow of our system."
-              </p>
-            </div>
+            
+            <div className="space-y-6">
+              {/* Overview */}
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-bold text-red-900 mb-2">Security Philosophy</h3>
+                <p className="text-gray-700 text-sm">
+                  Our system implements defense-in-depth with multiple security layers. Given the sensitive 
+                  nature of forensic data, we prioritize data protection, access control, and complete 
+                  auditability of all system actions.
+                </p>
+              </div>
 
-            <ol className="space-y-3 pl-4">
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                <div>
-                  <p className="font-semibold">Login to the System</p>
-                  <p className="text-gray-600 text-sm">Show the authentication page and login with test credentials.</p>
+              {/* Authentication */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">1. Authentication Layer</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded font-bold text-xs">JWT</span>
+                    <div>
+                      <p className="font-semibold">JSON Web Tokens</p>
+                      <p className="text-gray-600">Stateless authentication with cryptographic signing. Tokens include user ID, role, and expiration.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded font-bold text-xs">HTTPS</span>
+                    <div>
+                      <p className="font-semibold">TLS 1.3 Encryption</p>
+                      <p className="text-gray-600">All data in transit encrypted. HSTS headers enforce secure connections.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded font-bold text-xs">HASH</span>
+                    <div>
+                      <p className="font-semibold">Password Security</p>
+                      <p className="text-gray-600">Passwords hashed with bcrypt (cost factor 10). Never stored in plain text.</p>
+                    </div>
+                  </div>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                <div>
-                  <p className="font-semibold">View Dashboard</p>
-                  <p className="text-gray-600 text-sm">Show statistics - active cases, total suspects, recent matches.</p>
+              </div>
+
+              {/* Authorization - RLS */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">2. Row Level Security (RLS)</h3>
+                <div className="text-sm">
+                  <p className="text-gray-700 mb-3">
+                    PostgreSQL RLS policies enforce data access at the database level - even if application 
+                    code has bugs, unauthorized data access is prevented.
+                  </p>
+                  <div className="bg-gray-100 p-3 rounded font-mono text-xs mb-3">
+                    <p className="font-semibold mb-1">Example Policy (cases table):</p>
+                    <code>
+                      CREATE POLICY "Users can view cases"<br/>
+                      ON cases FOR SELECT<br/>
+                      USING (is_officer_or_above());
+                    </code>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="border p-2 rounded text-center">
+                      <p className="font-bold text-blue-800">Officer</p>
+                      <p className="text-xs">View Only</p>
+                    </div>
+                    <div className="border p-2 rounded text-center">
+                      <p className="font-bold text-green-800">Analyst</p>
+                      <p className="text-xs">View + Create + Edit</p>
+                    </div>
+                    <div className="border p-2 rounded text-center">
+                      <p className="font-bold text-red-800">Admin</p>
+                      <p className="text-xs">Full Access + Users</p>
+                    </div>
+                  </div>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                <div>
-                  <p className="font-semibold">Create a New Case</p>
-                  <p className="text-gray-600 text-sm">Navigate to Cases → New Case → Enter title and description.</p>
+              </div>
+
+              {/* Role-Based Access */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">3. Role-Based Access Control (RBAC)</h3>
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-2 text-left">Permission</th>
+                      <th className="p-2 text-center">Officer</th>
+                      <th className="p-2 text-center">Analyst</th>
+                      <th className="p-2 text-center">Admin</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="p-2">View Cases</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2">Create Cases</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2">Generate Sketches</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2">Add Suspects</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2">Manage Users</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-2">View Audit Logs</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-red-600">✗</td>
+                      <td className="p-2 text-center text-green-600">✓</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Audit Logging */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">4. Comprehensive Audit Logging</h3>
+                <div className="text-sm text-gray-700">
+                  <p className="mb-2">Every action is recorded with:</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Actor ID:</strong> Who performed the action</li>
+                    <li><strong>Timestamp:</strong> When it happened (UTC)</li>
+                    <li><strong>Action Type:</strong> INSERT, UPDATE, DELETE, VIEW</li>
+                    <li><strong>Target:</strong> Which record was affected</li>
+                    <li><strong>Payload:</strong> Before/after values for changes</li>
+                  </ul>
+                  <div className="mt-3 bg-gray-100 p-3 rounded font-mono text-xs">
+                    <p className="font-semibold mb-1">Implemented via Database Triggers:</p>
+                    <code>CREATE TRIGGER cases_audit_trigger<br/>AFTER INSERT OR UPDATE OR DELETE ON cases<br/>FOR EACH ROW EXECUTE FUNCTION audit_trigger();</code>
+                  </div>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
-                <div>
-                  <p className="font-semibold">Generate AI Sketch</p>
-                  <p className="text-gray-600 text-sm">Enter suspect description → Show clarifying questions → Generate sketch.</p>
+              </div>
+
+              {/* API Security */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">5. API & Edge Function Security</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-semibold mb-2">Request Validation:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>CORS policies restrict origins</li>
+                      <li>Input sanitization on all parameters</li>
+                      <li>Rate limiting to prevent abuse</li>
+                      <li>Request body size limits</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-2">Secret Management:</p>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700">
+                      <li>API keys stored in Supabase Vault</li>
+                      <li>Never exposed to frontend code</li>
+                      <li>Rotatable without code changes</li>
+                      <li>Environment-specific secrets</li>
+                    </ul>
+                  </div>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">5</span>
-                <div>
-                  <p className="font-semibold">View AI Matches</p>
-                  <p className="text-gray-600 text-sm">Show the matches tab with confidence scores and suspect details.</p>
+              </div>
+
+              {/* Storage Security */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-red-700 mb-3">6. File Storage Security</h3>
+                <div className="text-sm text-gray-700">
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li><strong>Private Buckets:</strong> No public access to evidence files</li>
+                    <li><strong>Signed URLs:</strong> Temporary access tokens with expiration (1 hour default)</li>
+                    <li><strong>RLS on Storage:</strong> Users can only access files related to their authorized cases</li>
+                    <li><strong>File Type Validation:</strong> Only allowed image formats accepted</li>
+                    <li><strong>Malware Scanning:</strong> Files scanned on upload (Supabase built-in)</li>
+                  </ul>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">6</span>
-                <div>
-                  <p className="font-semibold">Compare Sketch with Suspect</p>
-                  <p className="text-gray-600 text-sm">Open comparison modal → Show zoom, overlay, and swipe features.</p>
+              </div>
+
+              {/* Security Summary */}
+              <div className="bg-gradient-to-r from-red-100 to-orange-100 p-4 rounded-lg">
+                <h3 className="font-bold text-red-900 mb-2">🛡️ Security Layers Summary</h3>
+                <div className="grid grid-cols-3 gap-2 text-xs text-center">
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 1</p>
+                    <p>HTTPS/TLS</p>
+                  </div>
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 2</p>
+                    <p>JWT Auth</p>
+                  </div>
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 3</p>
+                    <p>RBAC</p>
+                  </div>
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 4</p>
+                    <p>RLS Policies</p>
+                  </div>
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 5</p>
+                    <p>Audit Logs</p>
+                  </div>
+                  <div className="bg-white p-2 rounded shadow-sm">
+                    <p className="font-bold">Layer 6</p>
+                    <p>Encrypted Storage</p>
+                  </div>
                 </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <span className="bg-teal-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">7</span>
-                <div>
-                  <p className="font-semibold">Show Admin Dashboard</p>
-                  <p className="text-gray-600 text-sm">Display user management, audit logs, and system statistics.</p>
-                </div>
-              </li>
-            </ol>
+              </div>
+            </div>
           </section>
 
-          {/* Section 8: Future Scope */}
-          <section>
-            <h2 className="text-2xl font-bold text-indigo-800 border-l-4 border-indigo-800 pl-4 mb-4">
-              8. Future Enhancements (1 minute)
-            </h2>
-            <div className="bg-indigo-50 p-4 rounded-lg">
-              <ul className="space-y-2 text-gray-700">
-                <li>• <strong>Mobile App:</strong> React Native version for field officers</li>
-                <li>• <strong>Video Analysis:</strong> Extract faces from CCTV footage</li>
-                <li>• <strong>Age Progression:</strong> AI-based age progression for missing persons</li>
-                <li>• <strong>Multi-language Support:</strong> Accept descriptions in regional languages</li>
-                <li>• <strong>Integration:</strong> Connect with national criminal databases</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Section 9: Conclusion */}
-          <section>
+          {/* Quick Reference */}
+          <section className="page-break-before">
             <h2 className="text-2xl font-bold text-gray-800 border-l-4 border-gray-800 pl-4 mb-4">
-              9. Conclusion (1 minute)
+              📋 Quick Reference
             </h2>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <p className="font-semibold text-gray-900 mb-2">🎤 What to say:</p>
-              <p className="italic text-gray-700">
-                "To summarize, the Forensic Face AI System demonstrates how artificial intelligence can 
-                transform traditional forensic processes. By automating sketch generation and suspect 
-                matching, we reduce investigation time from hours to minutes while maintaining high 
-                accuracy. The system is secure, scalable, and ready for real-world deployment. 
-                Thank you for your attention. We are happy to answer any questions."
-              </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-gray-700 mb-2">Technology Stack</h3>
+                <ul className="text-sm space-y-1 text-gray-600">
+                  <li>• Frontend: React 18 + TypeScript</li>
+                  <li>• Styling: Tailwind CSS + shadcn/ui</li>
+                  <li>• Backend: Supabase (BaaS)</li>
+                  <li>• Database: PostgreSQL + pgvector</li>
+                  <li>• AI: Google Gemini (Imagen 3.0)</li>
+                  <li>• Alerts: Telegram Bot API</li>
+                </ul>
+              </div>
+              <div className="border rounded-lg p-4">
+                <h3 className="font-bold text-gray-700 mb-2">Key Metrics</h3>
+                <ul className="text-sm space-y-1 text-gray-600">
+                  <li>• Sketch Generation: ~5-10 seconds</li>
+                  <li>• Embedding Dimensions: 768</li>
+                  <li>• Match Threshold: 70%+</li>
+                  <li>• Max DB Results: 10 matches</li>
+                  <li>• Image Resolution: 1024x1024</li>
+                  <li>• Token Limit: 2048 per request</li>
+                </ul>
+              </div>
             </div>
-          </section>
 
-          {/* Q&A Preparation */}
-          <section className="mt-8 border-t-2 border-gray-300 pt-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              📋 Anticipated Questions & Answers
-            </h2>
-            <div className="space-y-4 text-sm">
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Q: How accurate is the AI sketch generation?</p>
-                <p className="text-gray-700 mt-1">A: Accuracy depends on description quality. With detailed descriptions and clarifying questions, we achieve recognizable sketches. The matching algorithm uses 70%+ threshold for high confidence.</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Q: What happens if the AI generates wrong matches?</p>
-                <p className="text-gray-700 mt-1">A: All matches are suggestions for human review. Officers can mark false matches, and the system learns from feedback. Final identification is always human-verified.</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Q: How do you ensure data privacy?</p>
-                <p className="text-gray-700 mt-1">A: We use Row Level Security, JWT authentication, role-based access, audit logging, and encrypted storage. Only authorized personnel can access sensitive data.</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Q: Can the system scale to millions of suspects?</p>
-                <p className="text-gray-700 mt-1">A: Yes. PostgreSQL with pgvector supports efficient similarity search on millions of records. Edge functions auto-scale with traffic.</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded">
-                <p className="font-semibold">Q: Why did you choose these technologies?</p>
-                <p className="text-gray-700 mt-1">A: React for fast UI development, Supabase for integrated backend services, Google Gemini for state-of-the-art AI, and pgvector for efficient vector similarity search.</p>
+            <div className="mt-4 border rounded-lg p-4">
+              <h3 className="font-bold text-gray-700 mb-2">Edge Functions Reference</h3>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>generate-sketch</code> - Image generation
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>generate-sketch-embedding</code> - Vectorization
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>find-suspect-matches</code> - Similarity search
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>generate-clarifying-questions</code> - NLP
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>refine-description</code> - Text processing
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <code>send-telegram-alert</code> - Notifications
+                </div>
               </div>
             </div>
           </section>
@@ -467,8 +782,8 @@ Results + Telegram Alerts (if high confidence)`}
 
         {/* Footer */}
         <div className="mt-8 pt-4 border-t border-gray-300 text-center text-xs text-gray-500">
-          <p>Forensic Face AI System • Presentation Script</p>
-          <p className="mt-1">© 2024-2025 • Academic Project</p>
+          <p>Forensic Face AI System • Technical Documentation</p>
+          <p className="mt-1">© 2024-2025 • Academic Project • Department of Computer Science</p>
         </div>
       </div>
 
