@@ -60,198 +60,158 @@ const ProjectSummary = () => {
           </div>
         </div>
 
-        {/* Diagrams Section */}
+        {/* Diagrams Section - AI Prompts for Generation */}
         <div className="space-y-8 text-[15px]">
           
-          {/* System Architecture Diagram */}
+          {/* System Architecture Diagram Prompt */}
           <section className="page-break-before">
             <h2 className="text-2xl font-bold text-blue-800 border-l-4 border-blue-800 pl-4 mb-4">
               📐 System Architecture Diagram
             </h2>
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600 italic">Three-Tier Architecture with AI Integration</p>
-              </div>
-              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
-                <pre className="whitespace-pre">
-{`┌─────────────────────────────────────────────────────────────────────────┐
-│                           PRESENTATION LAYER                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐ │
-│  │                         React 18 + TypeScript                        │ │
-│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐            │ │
-│  │  │ Dashboard │ │   Cases   │ │  Suspects │ │  Matches  │            │ │
-│  │  └───────────┘ └───────────┘ └───────────┘ └───────────┘            │ │
-│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐            │ │
-│  │  │  Sketch   │ │ Comparison│ │   Admin   │ │   Auth    │            │ │
-│  │  │ Generator │ │   Modal   │ │ Dashboard │ │   Pages   │            │ │
-│  │  └───────────┘ └───────────┘ └───────────┘ └───────────┘            │ │
-│  │                    Tailwind CSS + shadcn/ui                          │ │
-│  └─────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           APPLICATION LAYER                              │
-│  ┌────────────────────────────────────────────────────────────────────┐  │
-│  │                    Supabase Edge Functions (Deno)                   │  │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
-│  │  │ generate-sketch │  │generate-sketch- │  │find-suspect-    │     │  │
-│  │  │                 │  │   embedding     │  │   matches       │     │  │
-│  │  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘     │  │
-│  │           │                    │                    │               │  │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐     │  │
-│  │  │refine-          │  │generate-        │  │send-telegram-   │     │  │
-│  │  │description      │  │clarifying-qs    │  │   alert         │     │  │
-│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘     │  │
-│  └────────────────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-              ┌─────────────────────┼─────────────────────┐
-              ▼                     ▼                     ▼
-┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
-│     DATA LAYER      │  │     AI/ML LAYER     │  │  EXTERNAL SERVICES  │
-│  ┌───────────────┐  │  │  ┌───────────────┐  │  │  ┌───────────────┐  │
-│  │  PostgreSQL   │  │  │  │ Google Gemini │  │  │  │   Telegram    │  │
-│  │   Database    │  │  │  │     API       │  │  │  │   Bot API     │  │
-│  │ ┌───────────┐ │  │  │  ├───────────────┤  │  │  └───────────────┘  │
-│  │ │  pgvector │ │  │  │  │  Imagen 3.0   │  │  │                     │
-│  │ │ extension │ │  │  │  │ (Sketches)    │  │  │                     │
-│  │ └───────────┘ │  │  │  ├───────────────┤  │  │                     │
-│  └───────────────┘  │  │  │text-embedding │  │  │                     │
-│  ┌───────────────┐  │  │  │    -004       │  │  │                     │
-│  │   Supabase    │  │  │  │ (Embeddings)  │  │  │                     │
-│  │    Storage    │  │  │  └───────────────┘  │  │                     │
-│  │ (case-evidence)│  │  │                     │  │                     │
-│  └───────────────┘  │  │                     │  │                     │
-└─────────────────────┘  └─────────────────────┘  └─────────────────────┘`}
-                </pre>
+            <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
+              <h3 className="font-bold text-blue-900 mb-3">🎨 AI Prompt to Generate Architecture Diagram:</h3>
+              <div className="bg-white p-4 rounded border border-blue-300 text-sm text-gray-800">
+                <p className="italic mb-4 text-blue-700">Copy this prompt and paste it into Claude, ChatGPT, or Gemini to generate a professional architecture diagram:</p>
+                <div className="bg-gray-50 p-4 rounded font-mono text-xs leading-relaxed">
+                  <p className="mb-2"><strong>Prompt:</strong></p>
+                  <p>
+                    "Create a professional three-tier system architecture diagram for a Forensic Face AI System with the following layers:
+                  </p>
+                  <p className="mt-2"><strong>LAYER 1 - PRESENTATION LAYER (Top):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Technology: React 18 + TypeScript</li>
+                    <li>Components: Dashboard, Cases, Suspects, Matches, Sketch Generator, Comparison Modal, Admin Dashboard, Auth Pages</li>
+                    <li>Styling: Tailwind CSS + shadcn/ui component library</li>
+                  </ul>
+                  <p className="mt-2"><strong>LAYER 2 - APPLICATION LAYER (Middle):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Technology: Supabase Edge Functions (Deno Runtime)</li>
+                    <li>Functions: generate-sketch, generate-sketch-embedding, find-suspect-matches, refine-description, generate-clarifying-questions, send-telegram-alert</li>
+                    <li>Show API Gateway connecting to all functions</li>
+                  </ul>
+                  <p className="mt-2"><strong>LAYER 3 - DATA/SERVICES LAYER (Bottom - 3 boxes side by side):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Box 1 - DATA LAYER: PostgreSQL Database with pgvector extension, Supabase Storage (case-evidence bucket)</li>
+                    <li>Box 2 - AI/ML LAYER: Google Gemini API with Imagen 3.0 (Sketch Generation) and text-embedding-004 (768-dim Embeddings)</li>
+                    <li>Box 3 - EXTERNAL SERVICES: Telegram Bot API for alerts</li>
+                  </ul>
+                  <p className="mt-2">Use clean professional styling with blue color scheme, arrows showing data flow between layers, and icons for each component. Make it PowerPoint-friendly (16:9 aspect ratio)."</p>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* Methodology Block Diagram */}
+          {/* Methodology Block Diagram Prompt */}
           <section className="page-break-before">
             <h2 className="text-2xl font-bold text-green-800 border-l-4 border-green-800 pl-4 mb-4">
               🔄 Methodology Block Diagram
             </h2>
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600 italic">Complete System Workflow Process</p>
-              </div>
-              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
-                <pre className="whitespace-pre">
-{`┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              FORENSIC FACE AI METHODOLOGY                        │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-  │   PHASE 1    │     │   PHASE 2    │     │   PHASE 3    │     │   PHASE 4    │
-  │    INPUT     │────▶│  PROCESSING  │────▶│   MATCHING   │────▶│   OUTPUT     │
-  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-         │                    │                    │                    │
-         ▼                    ▼                    ▼                    ▼
-  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-  │ Eyewitness   │     │  Ambiguity   │     │  Generate    │     │  Match       │
-  │ Description  │     │  Detection   │     │  Embeddings  │     │  Results     │
-  │              │     │  & Chatbot   │     │  (768-dim)   │     │              │
-  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-         │                    │                    │                    │
-         ▼                    ▼                    ▼                    ▼
-  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-  │ Case         │     │  Description │     │  Cosine      │     │  Telegram    │
-  │ Creation     │     │  Refinement  │     │  Similarity  │     │  Alerts      │
-  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-         │                    │                    │                    │
-         ▼                    ▼                    ▼                    ▼
-  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-  │ Evidence     │     │  AI Sketch   │     │  Database    │     │  Visual      │
-  │ Upload       │     │  Generation  │     │  Search      │     │  Comparison  │
-  │              │     │  (Imagen 3)  │     │  (pgvector)  │     │  Tools       │
-  └──────────────┘     └──────────────┘     └──────────────┘     └──────────────┘
-
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │                            CONTINUOUS FEEDBACK LOOP                          │
-  │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐   │
-  │  │   Officer   │───▶│   Review    │───▶│   Mark as   │───▶│   Audit     │   │
-  │  │   Review    │    │   Matches   │    │  True/False │    │   Logging   │   │
-  │  └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘   │
-  └─────────────────────────────────────────────────────────────────────────────┘`}
-                </pre>
+            <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+              <h3 className="font-bold text-green-900 mb-3">🎨 AI Prompt to Generate Methodology Diagram:</h3>
+              <div className="bg-white p-4 rounded border border-green-300 text-sm text-gray-800">
+                <p className="italic mb-4 text-green-700">Copy this prompt and paste it into Claude, ChatGPT, or Gemini to generate a professional methodology diagram:</p>
+                <div className="bg-gray-50 p-4 rounded font-mono text-xs leading-relaxed">
+                  <p className="mb-2"><strong>Prompt:</strong></p>
+                  <p>
+                    "Create a professional methodology block diagram for a Forensic Face AI System showing 4 phases with sub-processes:
+                  </p>
+                  <p className="mt-2"><strong>PHASE 1 - INPUT (Green):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Step 1.1: Eyewitness Description (witness provides verbal/written description)</li>
+                    <li>Step 1.2: Case Creation (officer creates new case in system)</li>
+                    <li>Step 1.3: Evidence Upload (photos, documents uploaded)</li>
+                  </ul>
+                  <p className="mt-2"><strong>PHASE 2 - PROCESSING (Blue):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Step 2.1: Ambiguity Detection (AI identifies vague terms like 'average height')</li>
+                    <li>Step 2.2: Chatbot Clarification (AI asks follow-up questions)</li>
+                    <li>Step 2.3: Description Refinement (final detailed description compiled)</li>
+                    <li>Step 2.4: AI Sketch Generation (Imagen 3.0 creates forensic sketch)</li>
+                  </ul>
+                  <p className="mt-2"><strong>PHASE 3 - MATCHING (Purple):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Step 3.1: Generate Embeddings (convert sketch to 768-dim vector)</li>
+                    <li>Step 3.2: Cosine Similarity Calculation (compare with suspect database)</li>
+                    <li>Step 3.3: Database Search (pgvector finds nearest neighbors)</li>
+                    <li>Step 3.4: Threshold Filtering (return matches above 0.7 similarity)</li>
+                  </ul>
+                  <p className="mt-2"><strong>PHASE 4 - OUTPUT (Orange):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Step 4.1: Match Results Display (ranked list with confidence scores)</li>
+                    <li>Step 4.2: Telegram Alerts (auto-notify for matches over 80%)</li>
+                    <li>Step 4.3: Visual Comparison Tools (side-by-side sketch vs photo)</li>
+                    <li>Step 4.4: Officer Review & Confirmation</li>
+                  </ul>
+                  <p className="mt-2"><strong>FEEDBACK LOOP (Bottom):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Officer marks matches as True/False Positive → Logged to audit_logs → Improves future accuracy</li>
+                  </ul>
+                  <p className="mt-2">Use horizontal flow with arrows connecting phases, color-coded boxes, and icons. Make it PowerPoint-friendly (16:9 aspect ratio)."</p>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* Data Flow Diagram */}
+          {/* Data Flow Diagram Prompt */}
           <section className="page-break-before">
             <h2 className="text-2xl font-bold text-purple-800 border-l-4 border-purple-800 pl-4 mb-4">
               📊 Data Flow Diagram (DFD)
             </h2>
-            <div className="bg-gray-50 p-6 rounded-lg border-2 border-gray-200">
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-600 italic">Level 1 Data Flow Diagram</p>
-              </div>
-              <div className="font-mono text-xs bg-white p-4 rounded border overflow-x-auto">
-                <pre className="whitespace-pre">
-{`                              ┌────────────────────┐
-                              │    EXTERNAL USER   │
-                              │   (Law Enforcement)│
-                              └─────────┬──────────┘
-                                        │
-           ┌────────────────────────────┼────────────────────────────┐
-           │                            │                            │
-           ▼                            ▼                            ▼
-  ┌─────────────────┐        ┌─────────────────┐        ┌─────────────────┐
-  │   1.0 USER      │        │   2.0 CASE      │        │   3.0 SUSPECT   │
-  │ AUTHENTICATION  │        │  MANAGEMENT     │        │  MANAGEMENT     │
-  │                 │        │                 │        │                 │
-  │ • Login/Logout  │        │ • Create Case   │        │ • Add Suspect   │
-  │ • Role Check    │        │ • View Cases    │        │ • Upload Photo  │
-  │ • Session Mgmt  │        │ • Update Status │        │ • Edit Details  │
-  └────────┬────────┘        └────────┬────────┘        └────────┬────────┘
-           │                          │                          │
-           │                          ▼                          │
-           │               ┌─────────────────┐                   │
-           │               │   4.0 SKETCH    │                   │
-           │               │   GENERATION    │                   │
-           │               │                 │                   │
-           │               │ • Text Input    │                   │
-           │               │ • Clarification │                   │
-           │               │ • AI Generation │                   │
-           │               └────────┬────────┘                   │
-           │                        │                            │
-           │                        ▼                            │
-           │               ┌─────────────────┐                   │
-           │               │   5.0 FACE      │◄──────────────────┘
-           │               │   MATCHING      │
-           │               │                 │
-           │               │ • Embedding Gen │
-           │               │ • Vector Search │
-           │               │ • Score Calc    │
-           │               └────────┬────────┘
-           │                        │
-           │                        ▼
-           │               ┌─────────────────┐
-           │               │   6.0 ALERT     │
-           │               │   NOTIFICATION  │
-           │               │                 │
-           │               │ • Telegram Bot  │
-           │               │ • Email (future)│
-           │               └────────┬────────┘
-           │                        │
-           └───────────────┬────────┴────────┬───────────────────┘
-                           │                 │
-                           ▼                 ▼
-                  ┌─────────────────┐  ┌─────────────────┐
-                  │   DATA STORES   │  │  EXTERNAL APIs  │
-                  │                 │  │                 │
-                  │ D1: users       │  │ Google Gemini   │
-                  │ D2: cases       │  │ Telegram Bot    │
-                  │ D3: suspects    │  │                 │
-                  │ D4: media       │  │                 │
-                  │ D5: matches     │  │                 │
-                  │ D6: audit_logs  │  │                 │
-                  └─────────────────┘  └─────────────────┘`}
-                </pre>
+            <div className="bg-purple-50 p-6 rounded-lg border-2 border-purple-200">
+              <h3 className="font-bold text-purple-900 mb-3">🎨 AI Prompt to Generate DFD:</h3>
+              <div className="bg-white p-4 rounded border border-purple-300 text-sm text-gray-800">
+                <p className="italic mb-4 text-purple-700">Copy this prompt and paste it into Claude, ChatGPT, or Gemini to generate a Level 1 Data Flow Diagram:</p>
+                <div className="bg-gray-50 p-4 rounded font-mono text-xs leading-relaxed">
+                  <p className="mb-2"><strong>Prompt:</strong></p>
+                  <p>
+                    "Create a Level 1 Data Flow Diagram (DFD) for a Forensic Face AI System using standard DFD notation:
+                  </p>
+                  <p className="mt-2"><strong>EXTERNAL ENTITY (Rectangle at top):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Law Enforcement User (Officer/Analyst/Admin)</li>
+                  </ul>
+                  <p className="mt-2"><strong>PROCESSES (Circles/Rounded rectangles - numbered):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>1.0 User Authentication: Login/Logout, Role Verification, Session Management</li>
+                    <li>2.0 Case Management: Create Case, View Cases, Update Status, Assign Officers</li>
+                    <li>3.0 Suspect Management: Add Suspect, Upload Photo, Generate Embedding, Edit Details</li>
+                    <li>4.0 Sketch Generation: Text Input, Ambiguity Detection, AI Clarification, Imagen 3.0 Generation</li>
+                    <li>5.0 Face Matching: Embedding Generation, Vector Search, Cosine Similarity, Score Calculation</li>
+                    <li>6.0 Alert Notification: Threshold Check, Telegram Bot Integration, Email (future)</li>
+                  </ul>
+                  <p className="mt-2"><strong>DATA STORES (Open-ended rectangles - labeled D1, D2, etc.):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>D1: users (id, email, role, name)</li>
+                    <li>D2: cases (id, title, description, status, created_by)</li>
+                    <li>D3: suspects (id, name, photo_url, photo_embedding, notes)</li>
+                    <li>D4: media (id, case_id, url, type, embedding)</li>
+                    <li>D5: matches (id, case_id, suspect_id, score, status)</li>
+                    <li>D6: audit_logs (id, action, actor_id, target_type, payload)</li>
+                  </ul>
+                  <p className="mt-2"><strong>EXTERNAL SYSTEMS (Rectangles on side):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>Google Gemini API (for AI processing)</li>
+                    <li>Telegram Bot API (for notifications)</li>
+                  </ul>
+                  <p className="mt-2"><strong>DATA FLOWS (Arrows with labels):</strong></p>
+                  <ul className="list-disc pl-5 mb-2">
+                    <li>User → 1.0: Credentials</li>
+                    <li>1.0 → D1: Verify Role</li>
+                    <li>User → 2.0: Case Details</li>
+                    <li>2.0 → D2: Store Case</li>
+                    <li>User → 3.0: Suspect Info + Photo</li>
+                    <li>3.0 → D3: Store Suspect</li>
+                    <li>3.0 → Google Gemini: Photo for Embedding</li>
+                    <li>User → 4.0: Description Text</li>
+                    <li>4.0 → Google Gemini: Generate Sketch</li>
+                    <li>4.0 → D4: Store Sketch</li>
+                    <li>5.0 → D3: Query Embeddings</li>
+                    <li>5.0 → D5: Store Matches</li>
+                    <li>6.0 → Telegram: Send Alert</li>
+                    <li>All Processes → D6: Audit Log</li>
+                  </ul>
+                  <p className="mt-2">Use standard DFD symbols with clean arrows, proper labeling, and professional color scheme. Make it PowerPoint-friendly (16:9 aspect ratio)."</p>
+                </div>
               </div>
             </div>
           </section>
