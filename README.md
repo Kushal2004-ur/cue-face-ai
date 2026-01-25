@@ -359,18 +359,7 @@ Contributions are welcome! Please follow these steps:
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
----
-
-## 📞 Contact
-
-**Project Team**
-- Team Member 1 - Project Lead
-- Team Member 2 - Full Stack Developer
-- Team Member 3 - AI/ML Engineer
-- Team Member 4 - UI/UX Designer
-
-**Project Link:** [[https://github.com/yourusername/forensic-face-ai](https://github.com/yourusername/forensic-face-ai)
-](https://github.com/Kushal2004-ur/cue-face-ai)
+**Project Link:** https://github.com/Kushal2004-ur/cue-face-ai
 ---
 
 <div align="center">
