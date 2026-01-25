@@ -369,14 +369,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 - Team Member 3 - AI/ML Engineer
 - Team Member 4 - UI/UX Designer
 
-**Project Link:** [https://github.com/yourusername/forensic-face-ai](https://github.com/yourusername/forensic-face-ai)
-
+**Project Link:** [[https://github.com/yourusername/forensic-face-ai](https://github.com/yourusername/forensic-face-ai)
+](https://github.com/Kushal2004-ur/cue-face-ai)
 ---
 
 <div align="center">
 
 ⭐ **Star this repo if you find it useful!** ⭐
-
-Made with ❤️ using [Lovable](https://lovable.dev)
-
-</div>
