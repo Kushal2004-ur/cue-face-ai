@@ -33,8 +33,108 @@
 - [Contributing](#-contributing)
 - [License](#-license)
 - [Contact](#-contact)
+- [Screenshots](#-screenshots)
 
 ---
+
+## 📸 Screenshots
+
+### Dashboard & Case Management
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashboard" width="800"/>
+  <br><em>Main dashboard showing active cases and recent matches</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/cases.png" alt="Cases List" width="800"/>
+  <br><em>Case management interface with status tracking</em>
+</p>
+
+### AI Sketch Generation
+<p align="center">
+  <img src="screenshots/sketch-generator.png" alt="Sketch Generator" width="800"/>
+  <br><em>AI-powered sketch generation from witness descriptions</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/clarification-chat.png" alt="Clarification Chat" width="800"/>
+  <br><em>Intelligent chatbot asking follow-up questions for detailed descriptions</em>
+</p>
+
+### Suspect Matching
+<p align="center">
+  <img src="screenshots/matching-results.png" alt="Matching Results" width="800"/>
+  <br><em>AI matching results with confidence scores</em>
+</p>
+
+<p align="center">
+  <img src="screenshots/comparison-modal.png" alt="Comparison Modal" width="800"/>
+  <br><em>Side-by-side comparison of sketch and suspect photo with overlay feature</em>
+</p>
+
+### Demo GIFs
+
+#### Complete Workflow Demo
+<p align="center">
+  <img src="screenshots/demo-workflow.gif" alt="Workflow Demo" width="800"/>
+  <br><em>Full workflow: Description → Sketch → Matching → Alert</em>
+</p>
+
+#### Sketch Generation in Action
+<p align="center">
+  <img src="screenshots/demo-sketch-generation.gif" alt="Sketch Generation" width="800"/>
+  <br><em>Watch AI generate a forensic sketch from text description</em>
+</p>
+
+#### Image Comparison Tools
+<p align="center">
+  <img src="screenshots/demo-comparison.gif" alt="Comparison Tools" width="800"/>
+  <br><em>Using overlay blend, zoom, and pan features</em>
+</p>
+
+### Mobile Responsive Views
+<p align="center">
+  <img src="screenshots/mobile-dashboard.png" alt="Mobile Dashboard" width="300"/>
+  <img src="screenshots/mobile-case.png" alt="Mobile Case" width="300"/>
+  <img src="screenshots/mobile-matches.png" alt="Mobile Matches" width="300"/>
+  <br><em>Fully responsive design for mobile devices</em>
+</p>
+
+---
+
+### 📁 Adding Your Own Screenshots
+
+To add screenshots to this README:
+
+1. **Create a `screenshots` folder** in the project root:
+   ```bash
+   mkdir screenshots
+   ```
+
+2. **Capture screenshots** of key features:
+   - Dashboard view
+   - Case creation/detail
+   - Sketch generation process
+   - Matching results
+   - Comparison modal with overlay
+   - Admin dashboard
+
+3. **Record GIFs** using tools like:
+   - [ScreenToGif](https://www.screentogif.com/) (Windows)
+   - [Gifox](https://gifox.io/) (macOS)
+   - [Peek](https://github.com/phw/peek) (Linux)
+
+4. **Optimize images** for web:
+   - Use PNG for static screenshots
+   - Keep GIFs under 10MB
+   - Compress with [TinyPNG](https://tinypng.com/) or [Squoosh](https://squoosh.app/)
+
+5. **Commit to repository**:
+   ```bash
+   git add screenshots/
+   git commit -m "Add screenshots and demo GIFs"
+   git push
+   ```
 
 ## 🎯 About The Project
 
