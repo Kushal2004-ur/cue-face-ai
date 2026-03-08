@@ -31,6 +31,7 @@
 - [API Documentation](#-api-documentation)
 - [Security](#-security)
 - [Contributing](#-contributing)
+- [Team Members](#-team-members)
 - [License](#-license)
 - [Contact](#-contact)
 
