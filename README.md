@@ -360,9 +360,9 @@ Contributions are welcome! Please follow these steps:
 | # | Name | USN | Role |
 |---|------|-----|------|
 | 1 | **Kushal Raj U R** | 1AM22IS047 | Project Lead & Full-Stack Developer |
-| 2 | **Ananya Sharma** | 1AM22IS012 | AI/ML Engineer & Backend Developer |
-| 3 | **Rahul Menon** | 1AM22IS063 | Frontend Developer & UI/UX Designer |
-| 4 | **Priya Nair** | 1AM22IS058 | Database Engineer & DevOps |
+| 2 | **Lakshmi Prasanna R** | 1AM22IS050 | Backend Developer |
+| 3 | **Madan G** | 1AM22IS063 | AI/ML Engineer |
+| 4 | **HarshaVardhan** | 1AM22IS058 | Database Engineer & DevOps |
 
 > 🎓 **Department of Information Science & Engineering**
 > AMS College of Engineering, Bangalore
