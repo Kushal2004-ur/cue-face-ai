@@ -31,6 +31,7 @@
 - [API Documentation](#-api-documentation)
 - [Security](#-security)
 - [Contributing](#-contributing)
+- [Team Members](#-team-members)
 - [License](#-license)
 - [Contact](#-contact)
 
@@ -354,11 +355,26 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
+## 👥 Team Members
+
+| # | Name | USN | Role |
+|---|------|-----|------|
+| 1 | **Kushal Raj U R** | 1AM22IS047 | Project Lead & Full-Stack Developer |
+| 2 | **Ananya Sharma** | 1AM22IS012 | AI/ML Engineer & Backend Developer |
+| 3 | **Rahul Menon** | 1AM22IS063 | Frontend Developer & UI/UX Designer |
+| 4 | **Priya Nair** | 1AM22IS058 | Database Engineer & DevOps |
+
+> 🎓 **Department of Information Science & Engineering**
+> AMS College of Engineering, Bangalore
+
+---
+
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 **Project Link:** https://github.com/Kushal2004-ur/cue-face-ai
+
 ---
 
 <div align="center">
