@@ -361,8 +361,8 @@ Contributions are welcome! Please follow these steps:
 |---|------|-----|------|
 | 1 | **Kushal Raj U R** | 1AM22IS047 | Project Lead & Full-Stack Developer |
 | 2 | **Lakshmi Prasanna R** | 1AM22IS050 | Backend Developer |
-| 3 | **Madan G** | 1AM22IS063 | AI/ML Engineer |
-| 4 | **HarshaVardhan** | 1AM22IS058 | Database Engineer & DevOps |
+| 3 | **Madan C Gogiker** | 1AM22IS055 | AI/ML Engineer |
+| 4 | **HarshaVardhan K M** | 1AM22IS403 | Database Engineer & DevOps |
 
 > 🎓 **Department of Information Science & Engineering**
 > AMS College of Engineering, Bangalore
